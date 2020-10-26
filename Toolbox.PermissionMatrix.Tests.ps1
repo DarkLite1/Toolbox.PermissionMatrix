@@ -921,9 +921,8 @@ InModuleScope $moduleName {
         }
         Context "replace AD names in 'Permissions' sheet" {
             $TestCases = @(
-                $TestName = 'A2 is NULL'
                 @{
-                    TestName    = $TestName
+                    TestName    = 'A2 is NULL'
                     Permissions = @(
                         [PSCustomObject]@{P1 = $null      ; P2 = 'Manager' }
                         [PSCustomObject]@{P1 = $null      ; P2 = 'SiteCode' }
@@ -956,12 +955,6 @@ InModuleScope $moduleName {
             )
 
             It '<TestName>' -TestCases $TestCases {
-                Param (
-                    $Permissions,
-                    $Settings,
-                    $Expected
-                )
-
                 $Actual = Expand-MatrixHC -Permissions $Permissions -Settings $Settings
 
                 Assert-Equivalent -Actual $Actual -Expected $Expected
@@ -2634,7 +2627,7 @@ InModuleScope $moduleName {
                     )
                     Expected    = @{
                         Type        = 'FatalError'
-                        Description = "All objects defined in the matrix need to be unique. Duplicate AD Objects can also be generated fromt he 'Settings' worksheet combined with the header rows in the 'Permissions' worksheet."
+                        Description = "All objects defined in the matrix need to be unique. Duplicate AD Objects can also be generated from the 'Settings' worksheet combined with the header rows in the 'Permissions' worksheet."
                         Name        = 'AD Object not unique'
                         Value       = @('Mike', 'Bob')
                     }

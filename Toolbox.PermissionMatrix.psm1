@@ -1119,7 +1119,7 @@ Function Test-MatrixPermissionsHC {
                 [PSCustomObject]@{
                     Type        = 'FatalError'
                     Name        = 'AD Object not unique'
-                    Description = "All objects defined in the matrix need to be unique. Duplicate AD Objects can also be generated fromt he 'Settings' worksheet combined with the header rows in the 'Permissions' worksheet."
+                    Description = "All objects defined in the matrix need to be unique. Duplicate AD Objects can also be generated from the 'Settings' worksheet combined with the header rows in the 'Permissions' worksheet."
                     Value       = $NotUniqueADObjects.Name
                 }
             }
