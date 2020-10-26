@@ -63,7 +63,7 @@ Function ConvertTo-AceHC {
         The permission character defining the access to the folder.
 
     .PARAMETER Name
-        Name of the AD object, used to identify the user or group witin AD.
+        Name of the AD object, used to identify the user or group within AD.
 
     .NOTES
 	    CHANGELOG
@@ -605,7 +605,7 @@ Function Get-ADObjectDetailHC {
                         $Member = @(Get-ADGroupMember -Identity $result.ADObject -Recursive).Where(
                             { 
                                 ($_.ObjectClass -eq 'user') -and 
-                                ($ExcludeMember -notcontains $_.SamAccountName) 
+                                ($ExcludeMember -notContains $_.SamAccountName) 
                             }, 'First')
 
                         $result.Member = if ($Member) { $true } else { $false }
@@ -659,7 +659,7 @@ Function Get-DefaultAclHC {
                         throw "AD object name '$ADObjectName' has no permission."
                     }
 
-                    if ($Permission -notmatch '^(L|R|W|C|F)$') {
+                    if ($Permission -notMatch '^(L|R|W|C|F)$') {
                         throw "Permission character '$Permission' unknown."
                     }
 
@@ -711,9 +711,9 @@ Function Get-ExecutableMatrixHC {
 
     Try {
         @((@($From).Where( {
-                        ($_.File.Check.Type -notcontains 'FatalError') -and
-                        ($_.Permissions.Check.Type -notcontains 'FatalError') })).Settings).Where( {
-                ($_.Check.Type -notcontains 'FatalError') -and ($_.Matrix)
+                        ($_.File.Check.Type -notContains 'FatalError') -and
+                        ($_.Permissions.Check.Type -notContains 'FatalError') })).Settings).Where( {
+                ($_.Check.Type -notContains 'FatalError') -and ($_.Matrix)
             })
     }
     Catch {
@@ -760,7 +760,7 @@ Function Get-JobErrorHC {
                     $Check.Type = 'FatalError'
                     $Check.Value = $Job.ChildJobs[0].Error.Exception.Message
                     $Check.Name = 'Non terminating error'
-                    $Check.Description = "A non terminating error occured while executing the job '$($Job.Name)'."
+                    $Check.Description = "A non terminating error occurred while executing the job '$($Job.Name)'."
                 }
                 Break
             }
@@ -774,7 +774,7 @@ Function Get-JobErrorHC {
                 }
                 else {
                     $Check.Name = 'Terminating error'
-                    $Check.Description = "A terminating error occured while executing the job '$($Job.Name)'."
+                    $Check.Description = "A terminating error occurred while executing the job '$($Job.Name)'."
                 }
                 Break
             }
@@ -788,7 +788,7 @@ Function Get-JobErrorHC {
         }
     }
     Catch {
-        throw "Failed retreiving the job errors for job '$($Job.Name)' on '$($Job.Location)': $_"
+        throw "Failed retrieving the job errors for job '$($Job.Name)' on '$($Job.Location)': $_"
     }
 }
 
@@ -907,7 +907,7 @@ Function Test-AclIsInheritedOnlyHC {
 
     .NOTES
         2018/08/06 Function born
-        2018/08/16 Exclude 'BUILTIN\Adminstrators
+        2018/08/16 Exclude 'BUILTIN\Administrators
         2018/08/17 Exclude 'NT AUTHORITY\SYSTEM'
         '
         AUTHOR Brecht.Gijbels@heidelbergcement.com
@@ -972,7 +972,7 @@ Function Test-ExpandedMatrixHC {
 
     Try {
         #region Check if the matrix contains objects not available in ADObjects
-        $Matrix.ACL.Keys.Where( { $ADObject.Name -notcontains $_ }).Foreach( {
+        $Matrix.ACL.Keys.Where( { $ADObject.Name -notContains $_ }).Foreach( {
                 throw "Unknown AD Object '$_' found in the matrix."
             })
         #endregion
@@ -1004,14 +1004,14 @@ Function Test-ExpandedMatrixHC {
         #endregion
 
         #region Inaccessible folders
-        $ADvalidAccessAccounts = $ADObject.Where( {
+        $AdValidAccessAccounts = $ADObject.Where( {
                 (($_.ADObject.ObjectClass -eq 'group') -and ($_.Member)) -or
                 ($_.ADObject.ObjectClass -eq 'user')
             }).Name
 
         if ($result = ($Matrix.Where( {
                         ($_.ACL.Keys.Count -ne 0) -and
-                        (-not ($_.ACL.Keys.Where( { $ADvalidAccessAccounts -contains $_ }))) })).Path) {
+                        (-not ($_.ACL.Keys.Where( { $AdValidAccessAccounts -contains $_ }))) })).Path) {
             [PSCustomObject]@{
                 Type        = 'Warning'
                 Name        = 'No folder access'
@@ -1030,12 +1030,12 @@ Function Test-ExpandedMatrixHC {
                     $tempHash["$_"] += 1
                 })
 
-            if ($duplicateADobject = $tempHash.Keys.Where( { $tempHash["$_"] -gt 1 })) {
+            if ($duplicateAdObject = $tempHash.Keys.Where( { $tempHash["$_"] -gt 1 })) {
                 [PSCustomObject]@{
                     Type        = 'Information'
-                    Name        = 'Conflichting AD Objects'
-                    Description = "AD Objects defined in the matrix are duplicate with the ones defined in the default permissions. In such cases the AD objects in the matrix win over those in the default permissions. This to ensure a folder can be made completely private to those defined in the matrix. This can be desired for departments like 'Legal' or 'HR' where data might contian sensitive information that should not be visible to IT admins defined in the default permissions."
-                    Value       = $duplicateADobject
+                    Name        = 'Conflicting AD Objects'
+                    Description = "AD Objects defined in the matrix are duplicate with the ones defined in the default permissions. In such cases the AD objects in the matrix win over those in the default permissions. This to ensure a folder can be made completely private to those defined in the matrix. This can be desired for departments like 'Legal' or 'HR' where data might contain sensitive information that should not be visible to IT admins defined in the default permissions."
+                    Value       = $duplicateAdObject
                 }
             }
         }
@@ -1145,7 +1145,7 @@ Function Test-MatrixPermissionsHC {
                 $Props.Foreach( {
                         $Ace = if ($tmpVal = $_.Value) { $tmpVal }
 
-                        if (($Ace) -and ($Ace -notmatch '^(L|R|W|I|C|F)$')) {
+                        if (($Ace) -and ($Ace -notMatch '^(L|R|W|I|C|F)$')) {
                             $Ace
                         }
                     })
@@ -1235,7 +1235,7 @@ Function Test-MatrixPermissionsHC {
             if ($inAccessibleFolder) {
                 [PSCustomObject]@{
                     Type        = 'Warning'
-                    Description = "All folders need to be accessible by the end user. Please define at least (R)ead or (W)rite permissions on the deepest folder or use the permission (I)gnore."
+                    Description = "All folders need to be accessible by the end user. Please define at least (R)ead or (W)rite permissions on the deepest folder or use the permission (I) ignore."
                     Name        = 'Matrix design flaw'
                     Value       = $inAccessibleFolder
                 }
@@ -1285,7 +1285,7 @@ Function Test-MatrixSettingHC {
             $Properties = ($Setting | Get-Member -MemberType NoteProperty).Name
 
             #region Missing property
-            if ($MissingProperty = @('ComputerName' , 'Path' , 'Action').Where( { $Properties -notcontains $_ })) {
+            if ($MissingProperty = @('ComputerName' , 'Path' , 'Action').Where( { $Properties -notContains $_ })) {
                 [PSCustomObject]@{
                     Type        = 'FatalError'
                     Name        = 'Missing column header'
@@ -1308,7 +1308,7 @@ Function Test-MatrixSettingHC {
             #endregion
 
             #region Action can only be New, Fix or Check
-            if (($Setting.Action) -and ($Setting.Action -notmatch '^(New|Fix|Check)$')) {
+            if (($Setting.Action) -and ($Setting.Action -notMatch '^(New|Fix|Check)$')) {
                 [PSCustomObject]@{
                     Type        = 'FatalError'
                     Name        = 'Action value incorrect'
@@ -1319,7 +1319,7 @@ Function Test-MatrixSettingHC {
             #endregion
 
             #region Path needs to be valid local path
-            if (($Setting.Path) -and ($Setting.Path -notmatch '^[a-zA-Z]:\\(\w+)')) {
+            if (($Setting.Path) -and ($Setting.Path -notMatch '^[a-zA-Z]:\\(\w+)')) {
                 [PSCustomObject]@{
                     Type        = 'FatalError'
                     Name        = 'Path value incorrect'

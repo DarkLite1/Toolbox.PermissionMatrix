@@ -1722,7 +1722,7 @@ InModuleScope $moduleName {
             }
         }
         Context 'returns false when' {
-            It "both ACL's are dfferent" {
+            It "both ACL's are different" {
                 $sourceAcl = New-Object System.Security.AccessControl.DirectorySecurity
                 $sourceAcl.AddAccessRule($A)
 
@@ -2152,7 +2152,7 @@ InModuleScope $moduleName {
                     Test-ExpandedMatrixHC -Matrix $Matrix -ADObject $ADObjects | Where-Object Name -EQ $Expected.Name |
                     Should -BeNullOrEmpty
                 }
-                It "a matrix doesn't contain any of the empty groups defind in ADObjects" {
+                It "a matrix doesn't contain any of the empty groups defined in ADObjects" {
                     $ADObjects = @(
                         @{
                             Name     = 'Group1'
@@ -2312,8 +2312,8 @@ InModuleScope $moduleName {
             BeforeAll {
                 $Expected = [PSCustomObject]@{
                     Type        = 'Information'
-                    Name        = 'Conflichting AD Objects'
-                    Description = "AD Objects defined in the matrix are duplicate with the ones defined in the default permissions. In such cases the AD objects in the matrix win over those in the default permissions. This to ensure a folder can be made completely private to those defined in the matrix. This can be desired for departments like 'Legal' or 'HR' where data might contian sensitive information that should not be visible to IT admins defined in the default permissions."
+                    Name        = 'Conflicting AD Objects'
+                    Description = "AD Objects defined in the matrix are duplicate with the ones defined in the default permissions. In such cases the AD objects in the matrix win over those in the default permissions. This to ensure a folder can be made completely private to those defined in the matrix. This can be desired for departments like 'Legal' or 'HR' where data might contain sensitive information that should not be visible to IT admins defined in the default permissions."
                     Value       = $null
                 }
             }
@@ -2473,7 +2473,7 @@ InModuleScope $moduleName {
                         )
                         Expected    = @{
                             Type        = 'Warning'
-                            Description = "All folders need to be accessible by the end user. Please define at least (R)ead or (W)rite permissions on the deepest folder or use the permission (I)gnore."
+                            Description = "All folders need to be accessible by the end user. Please define at least (R)ead or (W)rite permissions on the deepest folder or use the permission (I) ignore."
                             Name        = 'Matrix design flaw'
                             Value       = 'Vegetables'
                         }
@@ -2492,7 +2492,7 @@ InModuleScope $moduleName {
                         )
                         Expected    = @{
                             Type        = 'Warning'
-                            Description = "All folders need to be accessible by the end user. Please define at least (R)ead or (W)rite permissions on the deepest folder or use the permission (I)gnore."
+                            Description = "All folders need to be accessible by the end user. Please define at least (R)ead or (W)rite permissions on the deepest folder or use the permission (I) ignore."
                             Name        = 'Matrix design flaw'
                             Value       = 'Vegetables'
                         }
@@ -2511,7 +2511,7 @@ InModuleScope $moduleName {
                         )
                         Expected    = @{
                             Type        = 'Warning'
-                            Description = "All folders need to be accessible by the end user. Please define at least (R)ead or (W)rite permissions on the deepest folder or use the permission (I)gnore."
+                            Description = "All folders need to be accessible by the end user. Please define at least (R)ead or (W)rite permissions on the deepest folder or use the permission (I) ignore."
                             Name        = 'Matrix design flaw'
                             Value       = 'Vegetables'
                         }
@@ -2538,7 +2538,7 @@ InModuleScope $moduleName {
                         )
                         Expected    = @{
                             Type        = 'Warning'
-                            Description = "All folders need to be accessible by the end user. Please define at least (R)ead or (W)rite permissions on the deepest folder or use the permission (I)gnore."
+                            Description = "All folders need to be accessible by the end user. Please define at least (R)ead or (W)rite permissions on the deepest folder or use the permission (I) ignore."
                             Name        = 'Matrix design flaw'
                             Value       = @('Vegetables', 'Fruit\Appel', 'Fruit\Banana\Yellow',
                                 'Sports', 'Color\Green', 'Animal\Dog')
@@ -2895,7 +2895,7 @@ InModuleScope $moduleName {
         BeforeEach {
             Get-Job | Remove-Job -Force
         }
-        Context 'no ouptut is generated when' {
+        Context 'no output is generated when' {
             It 'the job executed flawlessly' {
                 $testInvokeParams = @{
                     ScriptBlock  = { 1 }
@@ -2925,7 +2925,7 @@ InModuleScope $moduleName {
                 $Actual.Type | Should -Be 'FatalError'
                 $Actual.Name | Should -Be 'Connection error'
             }
-            It 'a terminating error occured in the job' {
+            It 'a terminating error occurred in the job' {
                 $testInvokeParams = @{
                     ScriptBlock  = { throw 'Shit' }
                     ComputerName = 'localhost'
