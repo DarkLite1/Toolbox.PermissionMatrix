@@ -391,15 +391,15 @@ Function Expand-MatrixHC {
     )
 
     Try {
-        $Done = @{}
+        $result = @{}
 
         foreach ($S in $Settings) {
             $formattedSettingsRow = Format-SettingStringsHC -Settings $S
 
             $Key = ($formattedSettingsRow.GroupName + ' - ' + $formattedSettingsRow.SiteCode)
 
-            if ($Done.ContainsKey($Key)) {
-                $ACL = $Done.$Key
+            if ($result.ContainsKey($Key)) {
+                $ACL = $result.$Key
             }
             else {
                 $ADObjectParams = @{
@@ -407,19 +407,22 @@ Function Expand-MatrixHC {
                     Middle        = $formattedSettingsRow.SiteCode
                     ColumnHeaders = $Permissions
                 }
-                $ADObjects = ConvertTo-MatrixADNamesHC @ADObjectParams
+                $adObjects = ConvertTo-MatrixADNamesHC @ADObjectParams
 
                 $Params = @{
                     NonHeaderRows = $Permissions | Select-Object -Skip 3
-                    ADObjects     = $ADObjects
+                    ADObjects     = $adObjects
                 }
                 $ACL = ConvertTo-MatrixAclHC @Params
 
-                $Done.Add($Key, $ACL)
+                $result.Add($Key, $ACL)
             }
 
             [PSCustomObject]$formattedSettingsRow | 
-            Select-Object *, @{N = 'Permissions'; E = { $ACL } }
+            Select-Object *, 
+            @{N = 'Permissions'; E = { $ACL } },
+            @{N = 'AdObjects'; E = { $adObjects } }
+            
         }
     }
     Catch {

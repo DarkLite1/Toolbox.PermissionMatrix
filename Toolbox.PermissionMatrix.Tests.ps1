@@ -613,113 +613,153 @@ InModuleScope $moduleName {
     Describe 'Expand-MatrixHC' {
         Context "create a new matrix for each row in 'Settings'" {
             $TestCases = @(
-                $TestName = 'same matrix for each row'
-                $Permissions = @(
-                    [PSCustomObject]@{
-                        Path   = 'Path'  ; 
-                        ACL    = @{'GroupName SiteCode Manager' = 'L' }; 
-                        Ignore = $false; 
-                        Parent = $true 
+                $expected = @{
+                    AdObjects   = @{
+                        P2 = @{
+                            SamAccountName = 'bob'
+                            Original       = [ordered]@{
+                                Begin  = ''
+                                Middle = ''
+                                End    = 'bob'
+                            }
+                            Converted      = [ordered]@{
+                                Begin  = ''
+                                Middle = ''
+                                End    = 'bob'
+                            }
+                        }
                     }
-                    [PSCustomObject]@{
-                        Path   = 'Folder'; 
-                        ACL    = @{'GroupName SiteCode Manager' = 'R' }; 
-                        Ignore = $false; 
-                        Parent = $false 
-                    }
-                )
-                @{
-                    TestName    = $TestName
                     Permissions = @(
-                        [PSCustomObject]@{P1 = $null      ; P2 = 'Manager' }
-                        [PSCustomObject]@{P1 = 'SiteCode' ; P2 = 'SiteCode' }
-                        [PSCustomObject]@{P1 = 'GroupName'; P2 = 'GroupName' }
-                        [PSCustomObject]@{P1 = 'Path'     ; P2 = 'L' }
-                        [PSCustomObject]@{P1 = 'Folder'   ; P2 = 'R' }
-                    )
-                    Settings    = @(
                         [PSCustomObject]@{
-                            ComputerName = 'S1'; 
-                            Path         = 'E:\Department'; 
-                            Action       = 'Check' 
+                            Path   = 'Path' ; 
+                            ACL    = @{'bob' = 'L' }; 
+                            Ignore = $false; 
+                            Parent = $true 
                         }
                         [PSCustomObject]@{
-                            ComputerName = 'S2'; 
-                            Path         = 'E:\Reporting' ; 
-                            Action       = 'New' 
+                            Path   = 'F1'; 
+                            ACL    = @{'bob' = 'R' }; 
+                            Ignore = $false; 
+                            Parent = $false 
                         }
                     )
-                    Expected    = @(
+                }
+                @{
+                    TestName = 'same matrix for each row'
+                    file     = @{
+                        Permissions = @(
+                            [PSCustomObject]@{P1 = ''     ; P2 = 'bob' }
+                            [PSCustomObject]@{P1 = ''     ; P2 = '' }
+                            [PSCustomObject]@{P1 = ''     ; P2 = '' }
+                            [PSCustomObject]@{P1 = 'Path' ; P2 = 'L' }
+                            [PSCustomObject]@{P1 = 'F1'   ; P2 = 'R' }
+                        )
+                        Settings    = @(
+                            [PSCustomObject]@{
+                                ComputerName = 'S1'
+                                Path         = 'E:\Department'
+                                Action       = 'Check' 
+                            }
+                            [PSCustomObject]@{
+                                ComputerName = 'S2'; 
+                                Path         = 'E:\Reporting' 
+                                Action       = 'New' 
+                            }
+                        )
+                    }
+                    Expected = @(
                         [PSCustomObject]@{
                             ComputerName = 'S1'; 
-                            Path         = 'E:\Department'; 
+                            Path         = 'E:\Department'
                             Action       = 'Check'
-                            Permissions  = $Permissions
+                            Permissions  = $expected.Permissions
+                            AdObjects    = $expected.AdObjects
                         }
                         [PSCustomObject]@{
                             ComputerName = 'S2'; 
                             Path         = 'E:\Reporting'; 
                             Action       = 'New'
-                            Permissions  = $Permissions
+                            Permissions  = $expected.Permissions
+                            AdObjects    = $expected.AdObjects
                         }
                     )
                 }
 
-                $TestName = 'two matrixes the same and one different'
-                $Permissions = @(
-                    [PSCustomObject]@{
-                        Path   = 'Path'  ; 
-                        ACL    = @{'GroupName SiteCode Manager' = 'L' }; 
-                        Ignore = $false; 
-                        Parent = $true 
+                $expected = @{
+                    AdObjects   = @{
+                        P2 = @{
+                            SamAccountName = 'GroupName SiteCode bob'
+                            Original       = [ordered]@{
+                                Begin  = 'GroupName'
+                                Middle = 'SiteCode'
+                                End    = 'bob'
+                            }
+                            Converted      = [ordered]@{
+                                Begin  = 'GroupName'
+                                Middle = 'SiteCode'
+                                End    = 'bob'
+                            }
+                        }
                     }
-                    [PSCustomObject]@{
-                        Path   = 'Folder'; 
-                        ACL    = @{'GroupName SiteCode Manager' = 'R' }; 
-                        Ignore = $false; 
-                        Parent = $false 
-                    }
-                )
-                @{
-                    TestName    = $TestName
                     Permissions = @(
-                        [PSCustomObject]@{P1 = $null      ; P2 = 'Manager' }
-                        [PSCustomObject]@{P1 = 'SiteCode' ; P2 = 'SiteCode' }
-                        [PSCustomObject]@{P1 = 'GroupName'; P2 = 'GroupName' }
-                        [PSCustomObject]@{P1 = 'Path'     ; P2 = 'L' }
-                        [PSCustomObject]@{P1 = 'Folder'   ; P2 = 'R' }
-                    )
-                    Settings    = @(
                         [PSCustomObject]@{
-                            ComputerName = 'S1'; 
-                            Path         = 'E:\Department'; 
-                            Action       = 'Check' 
+                            Path   = 'Path'  ; 
+                            ACL    = @{'GroupName SiteCode bob' = 'L' }; 
+                            Ignore = $false; 
+                            Parent = $true 
                         }
                         [PSCustomObject]@{
-                            ComputerName = 'S2'; 
-                            Path         = 'E:\Reporting' ; 
-                            Action       = 'New' 
-                        }
-                        [PSCustomObject]@{
-                            ComputerName = 'S3'; 
-                            Path         = 'E:\Finance' ; 
-                            Action       = 'Fix'; 
-                            GroupName    = 'BEL'; 
-                            SiteCode     = 'Bxl' 
+                            Path   = 'Folder'; 
+                            ACL    = @{'GroupName SiteCode bob' = 'R' }; 
+                            Ignore = $false; 
+                            Parent = $false 
                         }
                     )
-                    Expected    = @(
+                }
+                @{
+                    TestName = 'two matrixes the same and one different'
+                    file     = @{
+                        Permissions = @(
+                            [PSCustomObject]@{P1 = ''      ; P2 = 'bob' }
+                            [PSCustomObject]@{P1 = ''      ; P2 = 'SiteCode' }
+                            [PSCustomObject]@{P1 = ''      ; P2 = 'GroupName' }
+                            [PSCustomObject]@{P1 = 'Path'  ; P2 = 'L' }
+                            [PSCustomObject]@{P1 = 'Folder'; P2 = 'R' }
+                        )
+                        Settings    = @(
+                            [PSCustomObject]@{
+                                ComputerName = 'S1'; 
+                                Path         = 'E:\Department'; 
+                                Action       = 'Check' 
+                            }
+                            [PSCustomObject]@{
+                                ComputerName = 'S2'; 
+                                Path         = 'E:\Reporting' ; 
+                                Action       = 'New' 
+                            }
+                            [PSCustomObject]@{
+                                ComputerName = 'S3'; 
+                                Path         = 'E:\Finance' ; 
+                                Action       = 'Fix'; 
+                                GroupName    = 'BEL'; 
+                                SiteCode     = 'Bxl' 
+                            }
+                        )
+                    }
+                    Expected = @(
                         [PSCustomObject]@{
                             ComputerName = 'S1'; 
                             Path         = 'E:\Department'; 
                             Action       = 'Check'
-                            Permissions  = $Permissions
+                            Permissions  = $expected.Permissions
+                            AdObjects    = $expected.AdObjects
                         }
                         [PSCustomObject]@{
                             ComputerName = 'S2'; 
                             Path         = 'E:\Reporting'; 
                             Action       = 'New'
-                            Permissions  = $Permissions
+                            Permissions  = $expected.Permissions
+                            AdObjects    = $expected.AdObjects
                         }
                         [PSCustomObject]@{
                             ComputerName = 'S3'; 
@@ -730,237 +770,346 @@ InModuleScope $moduleName {
                             Permissions  = @(
                                 [PSCustomObject]@{
                                     Path   = 'Path'  ; 
-                                    ACL    = @{'BEL Bxl Manager' = 'L' }; 
+                                    ACL    = @{'BEL Bxl bob' = 'L' }; 
                                     Ignore = $false; 
                                     Parent = $true 
                                 }
                                 [PSCustomObject]@{
                                     Path   = 'Folder'; 
-                                    ACL    = @{'BEL Bxl Manager' = 'R' }; 
+                                    ACL    = @{'BEL Bxl bob' = 'R' }; 
                                     Ignore = $false; 
                                     Parent = $false 
                                 }
                             )
+                            AdObjects    = @{
+                                P2 = @{
+                                    SamAccountName = 'BEL Bxl bob'
+                                    Original       = [ordered]@{
+                                        Begin  = 'GroupName'
+                                        Middle = 'SiteCode'
+                                        End    = 'bob'
+                                    }
+                                    Converted      = [ordered]@{
+                                        Begin  = 'BEL'
+                                        Middle = 'BXL'
+                                        End    = 'bob'
+                                    }
+                                }
+                            }
                         }
                     )
                 }
 
-                $TestName = "with only property 'ComputerName', 'Path' and 'Action'"
-                @{
-                    TestName    = $TestName
-                    Permissions = @(
-                        [PSCustomObject]@{P1 = $null      ; P2 = 'Manager' }
-                        [PSCustomObject]@{P1 = 'SiteCode' ; P2 = 'SiteCode' }
-                        [PSCustomObject]@{P1 = 'GroupName'; P2 = 'GroupName' }
-                        [PSCustomObject]@{P1 = 'Path'     ; P2 = 'L' }
-                        [PSCustomObject]@{P1 = 'Folder'   ; P2 = 'R' }
-                    )
-                    Settings    = @(
-                        [PSCustomObject]@{ComputerName = 'S1'; Path = 'E:\Department'; Action = 'Check' }
-                        [PSCustomObject]@{ComputerName = 'S2'; Path = 'E:\Reporting' ; Action = 'Check' }
-                        [PSCustomObject]@{ComputerName = 'S3'; Path = 'E:\Finance'   ; Action = 'Check' }
-                    )
-                    Expected    = @(
-                        [PSCustomObject]@{
-                            ComputerName = 'S1'; Path = 'E:\Department'; Action = 'Check'
-                            Permissions = @(
-                                [PSCustomObject]@{Path = 'Path'  ; ACL = @{'GroupName SiteCode Manager' = 'L' }; Ignore = $false; Parent = $true }
-                                [PSCustomObject]@{Path = 'Folder'; ACL = @{'GroupName SiteCode Manager' = 'R' }; Ignore = $false; Parent = $false }
-                            )
-                        }
-                        [PSCustomObject]@{
-                            ComputerName = 'S2'; Path = 'E:\Reporting'; Action = 'Check'
-                            Permissions = @(
-                                [PSCustomObject]@{Path = 'Path'  ; ACL = @{'GroupName SiteCode Manager' = 'L' }; Ignore = $false; Parent = $true }
-                                [PSCustomObject]@{Path = 'Folder'; ACL = @{'GroupName SiteCode Manager' = 'R' }; Ignore = $false; Parent = $false }
-                            )
-                        }
-                        [PSCustomObject]@{
-                            ComputerName = 'S3'; Path = 'E:\Finance'; Action = 'Check'
-                            Permissions = @(
-                                [PSCustomObject]@{Path = 'Path'  ; ACL = @{'GroupName SiteCode Manager' = 'L' }; Ignore = $false; Parent = $true }
-                                [PSCustomObject]@{Path = 'Folder'; ACL = @{'GroupName SiteCode Manager' = 'R' }; Ignore = $false; Parent = $false }
-                            )
-                        }
-                    )
-                }
-
-                $TestName = "with extra properties in the sheet 'Settings' that are kept and not removed"
-                @{
-                    TestName    = $TestName
-                    Permissions = @(
-                        [PSCustomObject]@{P1 = $null      ; P2 = 'Manager' }
-                        [PSCustomObject]@{P1 = 'SiteCode' ; P2 = 'SiteCode' }
-                        [PSCustomObject]@{P1 = 'GroupName'; P2 = 'GroupName' }
-                        [PSCustomObject]@{P1 = 'Path'     ; P2 = 'L' }
-                        [PSCustomObject]@{P1 = 'Folder'   ; P2 = 'R' }
-                    )
-                    Settings    = @(
-                        [PSCustomObject]@{Prop1 = 10; Prop2 = 20; ComputerName = 'S1'; Path = 'E:\Department'; Action = 'Check' }
-                        [PSCustomObject]@{Prop1 = 11; Prop2 = 21; ComputerName = 'S2'; Path = 'E:\Reporting' ; Action = 'Check' }
-                        [PSCustomObject]@{Prop1 = 12; Prop2 = 22; ComputerName = 'S3'; Path = 'E:\Finance'   ; Action = 'Check' }
-                    )
-                    Expected    = @(
-                        [PSCustomObject]@{
-                            Prop1 = 10; Prop2 = 20; ComputerName = 'S1'; Path = 'E:\Department'; Action = 'Check'
-                            Permissions = @(
-                                [PSCustomObject]@{Path = 'Path'  ; ACL = @{'GroupName SiteCode Manager' = 'L' }; Ignore = $false; Parent = $true }
-                                [PSCustomObject]@{Path = 'Folder'; ACL = @{'GroupName SiteCode Manager' = 'R' }; Ignore = $false; Parent = $false }
-                            )
-                        }
-                        [PSCustomObject]@{
-                            Prop1 = 11; Prop2 = 21; ComputerName = 'S2'; Path = 'E:\Reporting'; Action = 'Check'
-                            Permissions = @(
-                                [PSCustomObject]@{Path = 'Path'  ; ACL = @{'GroupName SiteCode Manager' = 'L' }; Ignore = $false; Parent = $true }
-                                [PSCustomObject]@{Path = 'Folder'; ACL = @{'GroupName SiteCode Manager' = 'R' }; Ignore = $false; Parent = $false }
-                            )
-                        }
-                        [PSCustomObject]@{
-                            Prop1 = 12; Prop2 = 22; ComputerName = 'S3'; Path = 'E:\Finance'; Action = 'Check'
-                            Permissions = @(
-                                [PSCustomObject]@{Path = 'Path'  ; ACL = @{'GroupName SiteCode Manager' = 'L' }; Ignore = $false; Parent = $true }
-                                [PSCustomObject]@{Path = 'Folder'; ACL = @{'GroupName SiteCode Manager' = 'R' }; Ignore = $false; Parent = $false }
-                            )
-                        }
-                    )
-                }
-
-                $TestName = "even when 'Status' is not set to 'Enabled'"
-                @{
-                    TestName    = $TestName
-                    Permissions = @(
-                        [PSCustomObject]@{P1 = $null        ; P2 = 'Manager' }
-                        [PSCustomObject]@{P1 = 'SiteCode'   ; P2 = 'SiteCode' }
-                        [PSCustomObject]@{P1 = 'GroupName'  ; P2 = 'GroupName' }
-                        [PSCustomObject]@{P1 = 'Path'; P2 = 'L' }
-                        [PSCustomObject]@{P1 = 'Folder'     ; P2 = 'R' }
-                    )
-                    Settings    = @(
-                        [PSCustomObject]@{Status = 'Enabled' ; ComputerName = 'S1'; Path = 'E:\Department'; GroupName = 'G1'; SiteName = 'S1'; SiteCode = 'C1'; Action = 'Check' }
-                        [PSCustomObject]@{Status = 'Disabled'; ComputerName = 'S2'; Path = 'E:\Reporting' ; GroupName = 'G2'; SiteName = 'S2'; SiteCode = 'C2'; Action = 'Check' }
-                        [PSCustomObject]@{Status = $null     ; ComputerName = 'S3'; Path = 'E:\Finance'   ; GroupName = 'G3'; SiteName = 'S3'; SiteCode = 'C3'; Action = 'Check' }
-                    )
-                    Expected    = @(
-                        [PSCustomObject]@{
-                            Status = 'Enabled' ; ComputerName = 'S1'; Path = 'E:\Department'; GroupName = 'G1'; SiteCode = 'C1'; SiteName = 'S1'; Action = 'Check'
-                            Permissions = @(
-                                [PSCustomObject]@{Path = 'Path'  ; ACL = @{'G1 C1 Manager' = 'L' }; Ignore = $false; Parent = $true }
-                                [PSCustomObject]@{Path = 'Folder'; ACL = @{'G1 C1 Manager' = 'R' }; Ignore = $false; Parent = $false }
-                            )
-                        }
-                        [PSCustomObject]@{
-                            Status = 'Disabled'; ComputerName = 'S2'; Path = 'E:\Reporting'; GroupName = 'G2'; SiteCode = 'C2'; SiteName = 'S2'; Action = 'Check'
-                            Permissions = @(
-                                [PSCustomObject]@{Path = 'Path'  ; ACL = @{'G2 C2 Manager' = 'L' }; Ignore = $false; Parent = $true }
-                                [PSCustomObject]@{Path = 'Folder'; ACL = @{'G2 C2 Manager' = 'R' }; Ignore = $false; Parent = $false }
-                            )
-                        }
-                        [PSCustomObject]@{
-                            Status = $null     ; ComputerName = 'S3'; Path = 'E:\Finance'; GroupName = 'G3'; SiteCode = 'C3'; SiteName = 'S3'; Action = 'Check'
-                            Permissions = @(
-                                [PSCustomObject]@{Path = 'Path'  ; ACL = @{'G3 C3 Manager' = 'L' }; Ignore = $false; Parent = $true }
-                                [PSCustomObject]@{Path = 'Folder'; ACL = @{'G3 C3 Manager' = 'R' }; Ignore = $false; Parent = $false }
-                            )
-                        }
-                    )
-                }
-
-                $TestName = 'parent folder is not replaced'
-                $ParentFolder = 'Not replaced'
-                @{
-                    TestName    = $TestName
-                    Permissions = @(
-                        [PSCustomObject]@{P1 = $null        ; P2 = 'Manager' }
-                        [PSCustomObject]@{P1 = 'SiteCode'   ; P2 = 'SiteCode' }
-                        [PSCustomObject]@{P1 = 'GroupName'  ; P2 = 'GroupName' }
-                        [PSCustomObject]@{P1 = $ParentFolder; P2 = 'L' }
-                        [PSCustomObject]@{P1 = 'Folder'     ; P2 = 'R' }
-                    )
-                    Settings    = @(
-                        [PSCustomObject]@{ComputerName = 'S1'; Path = 'E:\Department'; GroupName = 'G1'; SiteName = 'S1'; SiteCode = 'C1'; Action = 'Check' }
-                        [PSCustomObject]@{ComputerName = 'S2'; Path = 'E:\Reporting'; GroupName = 'G2'; SiteName = 'S2'; SiteCode = 'C2'; Action = 'Check' }
-                        [PSCustomObject]@{ComputerName = 'S3'; Path = 'E:\Finance'; GroupName = 'G3'; SiteName = 'S3'; SiteCode = 'C3'; Action = 'Check' }
-                    )
-                    Expected    = @(
-                        [PSCustomObject]@{
-                            ComputerName = 'S1'; Path = 'E:\Department'; GroupName = 'G1'; SiteCode = 'C1'; SiteName = 'S1'; Action = 'Check'
-                            Permissions = @(
-                                [PSCustomObject]@{Path = $ParentFolder; ACL = @{'G1 C1 Manager' = 'L' }; Ignore = $false; Parent = $true }
-                                [PSCustomObject]@{Path = 'Folder'     ; ACL = @{'G1 C1 Manager' = 'R' }; Ignore = $false; Parent = $false }
-                            )
-                        }
-                        [PSCustomObject]@{
-                            ComputerName = 'S2'; Path = 'E:\Reporting'; GroupName = 'G2'; SiteCode = 'C2'; SiteName = 'S2'; Action = 'Check'
-                            Permissions = @(
-                                [PSCustomObject]@{Path = $ParentFolder; ACL = @{'G2 C2 Manager' = 'L' }; Ignore = $false; Parent = $true }
-                                [PSCustomObject]@{Path = 'Folder'     ; ACL = @{'G2 C2 Manager' = 'R' }; Ignore = $false; Parent = $false }
-                            )
-                        }
-                        [PSCustomObject]@{
-                            ComputerName = 'S3'; Path = 'E:\Finance'; GroupName = 'G3'; SiteCode = 'C3'; SiteName = 'S3'; Action = 'Check'
-                            Permissions = @(
-                                [PSCustomObject]@{Path = $ParentFolder; ACL = @{'G3 C3 Manager' = 'L' }; Ignore = $false; Parent = $true }
-                                [PSCustomObject]@{Path = 'Folder'     ; ACL = @{'G3 C3 Manager' = 'R' }; Ignore = $false; Parent = $false }
-                            )
-                        }
-                    )
-                }
-            )
-
-            It '<TestName>' -TestCases $TestCases {
-                Param (
-                    $Permissions,
-                    $Settings,
-                    $Expected
-                )
-
-                $Actual = Expand-MatrixHC -Permissions $Permissions -Settings $Settings
-
-                Assert-Equivalent -Actual $Actual -Expected $Expected
-            }
-        }
-        Context "replace AD names in 'Permissions' sheet" {
-            $TestCases = @(
-                @{
-                    TestName    = 'A2 is NULL'
-                    Permissions = @(
-                        [PSCustomObject]@{P1 = $null      ; P2 = 'Manager' }
-                        [PSCustomObject]@{P1 = $null      ; P2 = 'SiteCode' }
-                        [PSCustomObject]@{P1 = 'GroupName'; P2 = 'GroupName' }
-                        [PSCustomObject]@{P1 = 'Path'     ; P2 = 'L' }
-                    )
-                    Settings    = @(
-                        [PSCustomObject]@{
-                            ComputerName = 'S1';
-                            Path         = 'E:\Department'; 
-                            Action       = 'Check'; 
-                            GroupName    = 'A'; 
-                            SiteCode     = 'B' 
-                        }
-                    )
-                    Expected    = [PSCustomObject]@{
-                        ComputerName = 'S1'; 
-                        Path         = 'E:\Department'; 
-                        Action       = 'Check'; 
-                        GroupName    = 'A'; 
-                        SiteCode     = 'B'
-                        Permissions  = [PSCustomObject]@{
-                            Path   = 'Path'; 
-                            Parent = $true; 
-                            Ignore = $false;
-                            ACL    = @{'A B Manager' = 'L' } 
+                $expected = @{
+                    adObjects   = @{
+                        P2 = @{
+                            SamAccountName = 'GroupName SiteCode bob'
+                            Original       = [ordered]@{
+                                Begin  = 'GroupName'
+                                Middle = 'SiteCode'
+                                End    = 'bob'
+                            }
+                            Converted      = [ordered]@{
+                                Begin  = 'GroupName'
+                                Middle = 'SiteCode'
+                                End    = 'bob'
+                            }
                         }
                     }
+                    permissions = @(
+                        [PSCustomObject]@{
+                            Path = 'Path'  
+                            ACL = @{'GroupName SiteCode bob' = 'L' }
+                            Ignore = $false; Parent = $true 
+                        }
+                        [PSCustomObject]@{
+                            Path = 'Folder'
+                            ACL = @{'GroupName SiteCode bob' = 'R' }
+                            Ignore = $false; Parent = $false 
+                        }
+                    )
+                }
+                @{
+                    TestName = "with only property 'ComputerName', 'Path' and 'Action'"
+                    file     = @{
+                        Permissions = @(
+                            [PSCustomObject]@{P1 = ''      ; P2 = 'bob' }
+                            [PSCustomObject]@{P1 = ''      ; P2 = 'SiteCode' }
+                            [PSCustomObject]@{P1 = ''      ; P2 = 'GroupName' }
+                            [PSCustomObject]@{P1 = 'Path'  ; P2 = 'L' }
+                            [PSCustomObject]@{P1 = 'Folder'; P2 = 'R' }
+                        )
+                        Settings    = @(
+                            [PSCustomObject]@{
+                                ComputerName = 'S1'; Path = 'E:\Department'; 
+                                Action = 'Check' 
+                            }
+                            [PSCustomObject]@{
+                                ComputerName = 'S2'; Path = 'E:\Reporting' ; 
+                                Action = 'Check' 
+                            }
+                            [PSCustomObject]@{
+                                ComputerName = 'S3'; Path = 'E:\Finance'   ; 
+                                Action = 'Check' 
+                            }
+                        )
+                    }
+                    Expected = @(
+                        [PSCustomObject]@{
+                            ComputerName = 'S1'; 
+                            Path         = 'E:\Department'; 
+                            Action       = 'Check'
+                            Permissions  = $expected.permissions
+                            AdObjects    = $expected.adObjects
+                        }
+                        [PSCustomObject]@{
+                            ComputerName = 'S2'
+                            Path         = 'E:\Reporting'
+                            Action       = 'Check'
+                            Permissions  = $expected.permissions
+                            AdObjects    = $expected.adObjects
+                        }
+                        [PSCustomObject]@{
+                            ComputerName = 'S3'
+                            Path         = 'E:\Finance' 
+                            Action       = 'Check'
+                            Permissions  = $expected.permissions
+                            AdObjects    = $expected.adObjects
+                        }
+                    )
+                }
+
+                $expected = @{
+                    adObjects   = @{
+                        P2 = @{
+                            SamAccountName = 'GroupName SiteCode bob'
+                            Original       = [ordered]@{
+                                Begin  = 'GroupName'
+                                Middle = 'SiteCode'
+                                End    = 'bob'
+                            }
+                            Converted      = [ordered]@{
+                                Begin  = 'GroupName'
+                                Middle = 'SiteCode'
+                                End    = 'bob'
+                            }
+                        }
+                    }
+                    permissions = @(
+                        [PSCustomObject]@{
+                            Path = 'Path'  
+                            ACL = @{'GroupName SiteCode bob' = 'L' }
+                            Ignore = $false; Parent = $true 
+                        }
+                        [PSCustomObject]@{
+                            Path = 'Folder' 
+                            ACL = @{'GroupName SiteCode bob' = 'R' }
+                            Ignore = $false; Parent = $false 
+                        }
+                    )
+                }
+                @{
+                    TestName = "with extra properties in the sheet 'Settings' that are kept and not removed"
+                    file     = @{
+                        Permissions = @(
+                            [PSCustomObject]@{P1 = $null    ; P2 = 'bob' }
+                            [PSCustomObject]@{P1 = ''       ; P2 = 'SiteCode' }
+                            [PSCustomObject]@{P1 = ''       ; P2 = 'GroupName' }
+                            [PSCustomObject]@{P1 = 'Path'   ; P2 = 'L' }
+                            [PSCustomObject]@{P1 = 'Folder' ; P2 = 'R' }
+                        )
+                        Settings    = @(
+                            [PSCustomObject]@{
+                                Prop1 = 10; Prop2 = 20; 
+                                ComputerName = 'S1'; Path = 'E:\Department'; 
+                                Action = 'Check' 
+                            }
+                            [PSCustomObject]@{
+                                Prop1 = 11; Prop2 = 21; 
+                                ComputerName = 'S2'; Path = 'E:\Reporting' ; 
+                                Action = 'Check' 
+                            }
+                            [PSCustomObject]@{
+                                Prop1 = 12; Prop2 = 22; 
+                                ComputerName = 'S3'; Path = 'E:\Finance'   ; 
+                                Action = 'Check' 
+                            }
+                        )
+                    }
+                    Expected = @(
+                        [PSCustomObject]@{
+                            Prop1 = 10; Prop2 = 20
+                            ComputerName = 'S1'
+                            Path = 'E:\Department'
+                            Action = 'Check'
+                            Permissions = $expected.permissions
+                            AdObjects = $expected.adObjects
+                        }
+                        [PSCustomObject]@{
+                            Prop1 = 11; Prop2 = 21
+                            ComputerName = 'S2'
+                            Path = 'E:\Reporting'
+                            Action = 'Check'
+                            Permissions = $expected.permissions
+                            AdObjects = $expected.adObjects
+                        }
+                        [PSCustomObject]@{
+                            Prop1 = 12; Prop2 = 22
+                            ComputerName = 'S3'
+                            Path = 'E:\Finance'
+                            Action = 'Check'
+                            Permissions = $expected.permissions
+                            AdObjects = $expected.adObjects
+                        }
+                    )
+                }
+
+                @{
+                    TestName = "even when 'Status' is not set to 'Enabled'"
+                    file     = @{
+                        Permissions = @(
+                            [PSCustomObject]@{P1 = ''       ; P2 = 'bob' }
+                            [PSCustomObject]@{P1 = ''       ; P2 = 'SiteCode' }
+                            [PSCustomObject]@{P1 = ''       ; P2 = 'GroupName' }
+                            [PSCustomObject]@{P1 = 'Path'   ; P2 = 'L' }
+                            [PSCustomObject]@{P1 = 'Folder' ; P2 = 'R' }
+                        )
+                        Settings    = @(
+                            [PSCustomObject]@{
+                                Status = 'Enabled'
+                                ComputerName = 'S1'; Path = 'E:\Department'
+                                GroupName = 'G1'; SiteName = 'S1'
+                                SiteCode = 'C1'; Action = 'Check' 
+                            }
+                            [PSCustomObject]@{
+                                Status = 'Disabled'
+                                ComputerName = 'S2'; Path = 'E:\Reporting'
+                                GroupName = 'G2'; SiteName = 'S2'
+                                SiteCode = 'C2'; Action = 'Check' 
+                            }
+                            [PSCustomObject]@{
+                                Status = ''     
+                                ComputerName = 'S3'; Path = 'E:\Finance'
+                                GroupName = 'G3'; SiteName = 'S3'
+                                SiteCode = 'C3'; Action = 'Check' 
+                            }
+                        )
+                    }
+                    Expected = @(
+                        [PSCustomObject]@{
+                            Status = 'Enabled'
+                            ComputerName = 'S1'; Path = 'E:\Department'
+                            GroupName = 'G1'; SiteCode = 'C1'
+                            SiteName = 'S1'; Action = 'Check'
+                            Permissions = @(
+                                [PSCustomObject]@{
+                                    Path = 'Path' 
+                                    ACL = @{'G1 C1 bob' = 'L' }
+                                    Ignore = $false; Parent = $true 
+                                }
+                                [PSCustomObject]@{
+                                    Path = 'Folder'; 
+                                    ACL = @{'G1 C1 bob' = 'R' }
+                                    Ignore = $false; Parent = $false 
+                                }
+                            )
+                            adObjects = @{
+                                P2 = @{
+                                    SamAccountName = 'G1 C1 bob'
+                                    Original       = [ordered]@{
+                                        Begin  = 'GroupName'
+                                        Middle = 'SiteCode'
+                                        End    = 'bob'
+                                    }
+                                    Converted      = [ordered]@{
+                                        Begin  = 'G1'
+                                        Middle = 'C1'
+                                        End    = 'bob'
+                                    }
+                                }
+                            }
+                        }
+                        [PSCustomObject]@{
+                            Status = 'Disabled'
+                            ComputerName = 'S2'; Path = 'E:\Reporting'
+                            GroupName = 'G2'; SiteCode = 'C2'; 
+                            SiteName = 'S2'; Action = 'Check'
+                            Permissions = @(
+                                [PSCustomObject]@{
+                                    Path = 'Path' 
+                                    ACL = @{'G2 C2 bob' = 'L' }
+                                    Ignore = $false; Parent = $true 
+                                }
+                                [PSCustomObject]@{
+                                    Path = 'Folder'
+                                    ACL = @{'G2 C2 bob' = 'R' }
+                                    Ignore = $false; Parent = $false 
+                                }
+                            )
+                            adObjects = @{
+                                P2 = @{
+                                    SamAccountName = 'G2 C2 bob'
+                                    Original       = [ordered]@{
+                                        Begin  = 'GroupName'
+                                        Middle = 'SiteCode'
+                                        End    = 'bob'
+                                    }
+                                    Converted      = [ordered]@{
+                                        Begin  = 'G2'
+                                        Middle = 'C2'
+                                        End    = 'bob'
+                                    }
+                                }
+                            }
+                        }
+                        [PSCustomObject]@{
+                            Status = $null     ; 
+                            ComputerName = 'S3'; Path = 'E:\Finance'
+                            GroupName = 'G3'; SiteCode = 'C3'
+                            SiteName = 'S3'; Action = 'Check'
+                            Permissions = @(
+                                [PSCustomObject]@{
+                                    Path = 'Path' 
+                                    ACL = @{'G3 C3 bob' = 'L' }
+                                    Ignore = $false; Parent = $true 
+                                }
+                                [PSCustomObject]@{
+                                    Path = 'Folder'
+                                    ACL = @{'G3 C3 bob' = 'R' }
+                                    Ignore = $false; Parent = $false 
+                                }
+                            )
+                            adObjects = @{
+                                P2 = @{
+                                    SamAccountName = 'G3 C3 bob'
+                                    Original       = [ordered]@{
+                                        Begin  = 'GroupName'
+                                        Middle = 'SiteCode'
+                                        End    = 'bob'
+                                    }
+                                    Converted      = [ordered]@{
+                                        Begin  = 'G3'
+                                        Middle = 'C3'
+                                        End    = 'bob'
+                                    }
+                                }
+                            }
+                        }
+                    )
                 }
             )
 
             It '<TestName>' -TestCases $TestCases {
-                $Actual = Expand-MatrixHC -Permissions $Permissions -Settings $Settings
+                $testParams = @{
+                    Permissions = $file.Permissions 
+                    Settings    = $file.Settings
+                }
+                $Actual = Expand-MatrixHC @testParams
 
                 Assert-Equivalent -Actual $Actual -Expected $Expected
             }
         }
-    }
+    } -Tag test
     Describe 'Format-PermissionsStringsHC' {
         Context "manipulate strings in the sheet 'Permissions'" {
             It 'convert numbers to strings' {
