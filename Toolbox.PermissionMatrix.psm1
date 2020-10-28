@@ -442,13 +442,7 @@ Function Format-PermissionsStringsHC {
 
     .PARAMETER Permissions
         Content of the Excel worksheet 'Permissions'.
-
-    .NOTES
-    	CHANGELOG
-    	2018/07/30 Function born
-        2018/08/22 Change permission char to upper case
-
-    	AUTHOR Brecht.Gijbels@heidelbergcement.com #>
+#>
 
     [CmdletBinding()]
     [OutputType([PSCustomObject[]])]
@@ -624,7 +618,6 @@ Function Get-ADObjectDetailHC {
     }
 }
 
-
 Function Get-DefaultAclHC {
     <#
     .SYNOPSIS
@@ -692,12 +685,13 @@ Function Get-ExecutableMatrixHC {
         Retrieve only those matrix that are able to be executed.
 
     .DESCRIPTION
-        Filter out matrix that have a FatalError object in the File, Permissions or in
-        the Settings object itself. Only those matrix that are flawless can be executed
-        to set permissions on folders.
+        Filter out matrix that have a FatalError object in the File, 
+        Permissions or in the Settings object itself. Only those matrix that 
+        are flawless can be executed to set permissions on folders.
 
     .PARAMETER From
-        One object for each file, containing the File, Settings and Permissions properties.
+        One object for each file, containing the File, Settings and Permissions 
+        properties.
 
     .NOTES
 	    CHANGELOG
@@ -837,6 +831,63 @@ Function Get-ADObjectNotExistingHC {
         Catch {
             throw "Failed to test if SamAccountName '$Name' exists: $_"
         }
+    }
+}
+
+Function Get-AdUserPrincipalNameHC {
+    <#
+    .SYNOPSIS
+        Convert a list of e-mail addresses to a list of UserPrincipalNames.
+
+    .DESCRIPTION
+        The list to convert can contain user e-mail addresses or group e-mail
+        addresses. For groups the user members are retrieved. The result will
+        only contain UserPrincipalNames from AD user accounts that are enabled.
+
+    .PARAMETER email
+        User e-mail addresses or group e-mail addresses.
+
+    .NOTES
+        CHANGELOG
+        2020/10/28 Function born
+
+        AUTHOR Brecht.Gijbels@heidelbergcement.com #>
+
+    [CmdletBinding()]
+    [OutputType([HashTable])]
+    Param(
+        [Parameter(Mandatory)]
+        [String[]]$email
+    )
+
+    $notFound = @()
+
+    $userPrincipalName = foreach (
+        $mailAddress in 
+        ($email | Sort-Object -Unique)
+    ) {
+        $adObject = Get-ADObject -Filter "mail -eq '$mailAddress'" -Property 'mail'
+
+        if (-not $adObject) {
+            $notFound += $mailAddress
+            Continue
+        }
+
+        $adUsers = if ($adObject.ObjectClass -eq 'group') {
+            Get-ADGroupMember $adObject -Recursive
+        }
+        elseif ($adObject.ObjectClass -eq 'user') {
+            $adObject
+        }
+
+        $adUsers | Get-ADUser |
+        Where-Object { $_.Enabled } |
+        Select-Object -ExpandProperty 'UserPrincipalName'
+    }
+
+    @{
+        notFound          = $notFound
+        userPrincipalName = $userPrincipalName | Sort-Object -Unique
     }
 }
 
@@ -1334,6 +1385,93 @@ Function Test-MatrixSettingHC {
         }
         Catch {
             throw "Failed testing the Excel sheet 'Settings' row for incorrect data: $_"
+        }
+    }
+}
+Function Test-FormDataHC {
+    <#
+    .SYNOPSIS
+        Verify input for the Excel sheet 'FormData'.
+
+    .DESCRIPTION
+        Verify if the Excel sheet 'FormData' contains the correct data.
+
+    .PARAMETER FormData
+        Represents the data coming from the Excel sheet 'FormData'.
+#>
+
+    [CmdletBinding()]
+    [OutputType([PSCustomObject[]])]
+    Param (
+        [Parameter(Mandatory)]
+        [PSCustomObject[]]$FormData
+    )
+
+    Process {
+        Try {
+            if ($FormData.Count -ge 2) {
+                return [PSCustomObject]@{
+                    Type        = 'Warning'
+                    Name        = 'Only one row allowed'
+                    Description = "Found $($FormData.Count) rows of data were only one row is allowed."
+                    Value       = $MissingProperty
+                }
+            }
+
+            $Properties = ($FormData | Get-Member -MemberType NoteProperty).Name
+
+            #region Test mandatory property MatrixFormStatus
+            if ($Properties -notContains 'MatrixFormStatus') {
+                return [PSCustomObject]@{
+                    Type        = 'Warning'
+                    Name        = 'Missing column header'
+                    Description = "The column header MatrixFormStatus is mandatory."
+                    Value       = 'MatrixFormStatus'
+                }
+            }
+            #endregion
+
+            #region Mandatory property
+            $mandatoryProperties = @(
+                'MatrixFormStatus',
+                'MatrixCategoryName' , 
+                'MatrixSubCategoryName' , 
+                'MatrixResponsible',
+                'MatrixFolderDisplayName' , 
+                'MatrixFolderPath'  
+            )
+
+            if ($MissingProperty = $mandatoryProperties.Where( { 
+                        $Properties -notContains $_ })) {
+                return [PSCustomObject]@{
+                    Type        = 'Warning'
+                    Name        = 'Missing column header'
+                    Description = "The column headers $mandatoryProperties are mandatory."
+                    Value       = $MissingProperty
+                }
+            }
+            #endregion
+
+            if ($FormData.MatrixFormStatus -eq 'Enabled') {
+                $mandatoryPropertyValues = $mandatoryProperties.Where( {
+                        $_ -ne 'MatrixFormStatus' })
+
+                #region Mandatory property value
+                if ($BlankProperty = $mandatoryPropertyValues.Where( {
+                            (-not ($FormData.$_)) -and 
+                            ($Properties -contains $_) })) {
+                    return [PSCustomObject]@{
+                        Type        = 'Warning'
+                        Name        = 'Missing value'
+                        Description = "Values for $mandatoryPropertyValues are mandatory."
+                        Value       = $BlankProperty
+                    }
+                }
+                #endregion
+            }
+        }
+        Catch {
+            throw "Failed testing the Excel sheet 'FormData': $_"
         }
     }
 }

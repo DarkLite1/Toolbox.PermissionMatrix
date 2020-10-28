@@ -8,6 +8,200 @@ Remove-Module $moduleName -Force -Verbose:$false -EA Ignore
 Import-Module $testScript -Force -Verbose:$false
 
 InModuleScope $moduleName {
+    Describe 'Get-AdUserPrincipalNameHC' {
+        Context 'a user e-mail address is' {
+            It 'converted to the userPrincipalName for an enabled account' {
+                Mock Get-ADObject {
+                    New-Object Microsoft.ActiveDirectory.Management.ADObject Identity -Property @{
+                        mail        = 'bob@mail.com'
+                        ObjectClass = 'user'
+                    }                
+                }
+                Mock Get-ADUser {
+                    New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
+                        Enabled = $true
+                        UserPrincipalName = 'bob@contoso.com'
+                    }
+                }
+
+                $actual = Get-AdUserPrincipalNameHC -email 'bob@mail.com'
+
+                $actual.userPrincipalName | Should -Be 'bob@contoso.com'
+                $actual.notFound | Should -BeNullOrEmpty
+            }
+            It 'not converted to the userPrincipalName when the account is not enabled' {
+                Mock Get-ADObject {
+                    New-Object Microsoft.ActiveDirectory.Management.ADObject Identity -Property @{
+                        mail        = 'bob@mail.com'
+                        ObjectClass = 'user'
+                    }                
+                }
+                Mock Get-ADUser {
+                    New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
+                        Enabled = $false
+                        UserPrincipalName = 'bob@contoso.com'
+                    }
+                }
+
+                $actual = Get-AdUserPrincipalNameHC -email 'bob@mail.com'
+
+                $actual.userPrincipalName | Should -BeNullOrEmpty
+                $actual.notFound | Should -BeNullOrEmpty
+            }
+        }
+        Context 'a group e-mail address' {
+            It 'returns the userPrincipalName for all enabled user member accounts' {
+                $testAdUserObjects = @(
+                    New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
+                        Enabled = $true
+                        UserPrincipalName = 'bob@contoso.com'
+                    }
+                    New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
+                        Enabled = $true
+                        UserPrincipalName = 'mike@contoso.com'
+                    }
+                    New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
+                        Enabled = $false
+                        UserPrincipalName = 'jack@contoso.com'
+                    }
+                )
+
+                Mock Get-ADObject {
+                    New-Object Microsoft.ActiveDirectory.Management.ADObject Identity -Property @{
+                        mail        = 'group@mail.com'
+                        ObjectClass = 'group'
+                    }                
+                }
+                Mock Get-ADGroupMember {
+                    $testAdUserObjects
+                }
+                Mock Get-ADUser {
+                    $testAdUserObjects
+                }
+
+                $actual = Get-AdUserPrincipalNameHC -email 'group@mail.com'
+
+                $actual.userPrincipalName.Count | Should -BeExactly 2
+                $actual.userPrincipalName[0] | Should -Be 'bob@contoso.com'
+                $actual.userPrincipalName[1] | Should -Be 'mike@contoso.com'
+                $actual.notFound | Should -BeNullOrEmpty
+            }
+        }
+        Context 'when an email address is not found in AD' {
+            It 'the email address is added to the notFound array' {
+                Mock Get-ADObject
+
+                $actual = Get-AdUserPrincipalNameHC -email 'bob@mail.com'
+
+                $actual.userPrincipalName | Should -BeNullOrEmpty
+                $actual.notFound | Should -Be 'bob@mail.com'
+            }
+        }
+    } -Tag test
+    Describe 'Test-FormDataHC' {
+        Context 'should create a warning object when' {
+            It 'there is more than one object' {
+                $testData = @(
+                    [PSCustomObject]@{
+                        MatrixFormStatus = 'x'
+                    }
+                    [PSCustomObject]@{
+                        MatrixFormStatus = 'x'
+                    }
+                )
+
+                $actual = Test-FormDataHC -FormData $testData
+
+                $actual.Type | Should -Be 'Warning'
+                $actual.Name | Should -Be 'Only one row allowed'
+            }
+            Context 'a property is missing' {
+                It '<Name>' -TestCases @(
+                    @{Name = 'MatrixFormStatus' }
+                    @{Name = 'MatrixResponsible' }
+                    @{Name = 'MatrixCategoryName' }
+                    @{Name = 'MatrixSubCategoryName' }
+                    @{Name = 'MatrixFolderDisplayName' }
+                    @{Name = 'MatrixFolderPath' }
+                ) {
+                    $testFormData = @{
+                        MatrixFormStatus        = 'Enabled'
+                        MatrixResponsible       = 'x'
+                        MatrixCategoryName      = 'x'
+                        MatrixSubCategoryName   = 'x'
+                        MatrixFolderDisplayName = 'x'
+                        MatrixFolderPath        = 'x'
+                    }
+    
+                    $testFormData.Remove($Name)
+                   
+                    $testData = [PSCustomObject]$testFormData
+
+                    $actual = Test-FormDataHC -FormData $testData
+
+                    $actual.Type | Should -Be 'Warning'
+                    $actual.Name | Should -Be 'Missing column header'
+                    $actual.Value | Should -Be $Name
+                }
+            }
+            Context 'MatrixFormStatus is set to Enabled and a property value is missing' {
+                It '<Name>' -TestCases @(
+                    @{Name = 'MatrixResponsible' }
+                    @{Name = 'MatrixCategoryName' }
+                    @{Name = 'MatrixSubCategoryName' }
+                    @{Name = 'MatrixFolderDisplayName' }
+                    @{Name = 'MatrixFolderPath' }
+                ) {
+                    $testFormData = @{
+                        MatrixFormStatus        = 'Enabled'
+                        MatrixResponsible       = 'x'
+                        MatrixCategoryName      = 'x'
+                        MatrixSubCategoryName   = 'x'
+                        MatrixFolderDisplayName = 'x'
+                        MatrixFolderPath        = 'x'
+                    }
+    
+                    $testFormData.$Name = ''
+                   
+                    $testData = [PSCustomObject]$testFormData
+
+                    $actual = Test-FormDataHC -FormData $testData
+
+                    $actual.Type | Should -Be 'Warning'
+                    $actual.Name | Should -Be 'Missing value'
+                    $actual.Value | Should -Be $Name
+                }
+            }
+        }
+        Context 'should not create a warning object when' {
+            Context 'MatrixFormStatus is not Enabled and a property value is missing' {
+                It '<Name>' -TestCases @(
+                    @{Name = 'MatrixResponsible' }
+                    @{Name = 'MatrixCategoryName' }
+                    @{Name = 'MatrixSubCategoryName' }
+                    @{Name = 'MatrixFolderDisplayName' }
+                    @{Name = 'MatrixFolderPath' }
+                ) {
+                    $testFormData = @{
+                        MatrixFormStatus        = ''
+                        MatrixResponsible       = 'x'
+                        MatrixCategoryName      = 'x'
+                        MatrixSubCategoryName   = 'x'
+                        MatrixFolderDisplayName = 'x'
+                        MatrixFolderPath        = 'x'
+                    }
+    
+                    $testFormData.$Name = ''
+                   
+                    $testData = [PSCustomObject]$testFormData
+
+                    $actual = Test-FormDataHC -FormData $testData
+
+                    $actual | Should -BeNullOrEmpty
+                }
+            }
+        }
+    } -tag test
     Describe 'ConvertTo-AceHC' {
         It 'L for List' {
             $Expected = New-Object System.Security.AccessControl.FileSystemAccessRule(
@@ -1109,7 +1303,7 @@ InModuleScope $moduleName {
                 Assert-Equivalent -Actual $Actual -Expected $Expected
             }
         }
-    } -Tag test
+    }
     Describe 'Format-PermissionsStringsHC' {
         Context "manipulate strings in the sheet 'Permissions'" {
             It 'convert numbers to strings' {
