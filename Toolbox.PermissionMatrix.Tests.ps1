@@ -3105,7 +3105,7 @@ InModuleScope $moduleName {
             $Actual = Test-AdObjectsHC -ADObjects $ADObjects
             $Actual | Should -BeNullOrEmpty
         }
-    } -Tag test
+    }
     Describe 'Test-MatrixSettingHC' {
         Context 'a FatalError object is created when' {
             $TestCases = @(
