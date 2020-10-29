@@ -19,7 +19,7 @@ InModuleScope $moduleName {
                 }
                 Mock Get-ADUser {
                     New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
-                        Enabled = $true
+                        Enabled           = $true
                         UserPrincipalName = 'bob@contoso.com'
                     }
                 }
@@ -38,7 +38,7 @@ InModuleScope $moduleName {
                 }
                 Mock Get-ADUser {
                     New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
-                        Enabled = $false
+                        Enabled           = $false
                         UserPrincipalName = 'bob@contoso.com'
                     }
                 }
@@ -53,15 +53,15 @@ InModuleScope $moduleName {
             It 'returns the userPrincipalName for all enabled user member accounts' {
                 $testAdUserObjects = @(
                     New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
-                        Enabled = $true
+                        Enabled           = $true
                         UserPrincipalName = 'bob@contoso.com'
                     }
                     New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
-                        Enabled = $true
+                        Enabled           = $true
                         UserPrincipalName = 'mike@contoso.com'
                     }
                     New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
-                        Enabled = $false
+                        Enabled           = $false
                         UserPrincipalName = 'jack@contoso.com'
                     }
                 )
@@ -97,7 +97,7 @@ InModuleScope $moduleName {
                 $actual.notFound | Should -Be 'bob@mail.com'
             }
         }
-    } -Tag test
+    }
     Describe 'Test-FormDataHC' {
         Context 'should create a warning object when' {
             It 'there is more than one object' {
@@ -201,7 +201,7 @@ InModuleScope $moduleName {
                 }
             }
         }
-    } -tag test
+    }
     Describe 'ConvertTo-AceHC' {
         It 'L for List' {
             $Expected = New-Object System.Security.AccessControl.FileSystemAccessRule(
@@ -2958,42 +2958,6 @@ InModuleScope $moduleName {
                     }
                 }
 
-                $TestName = 'duplicate AD objects are found'
-                @{
-                    TestName    = $TestName
-                    Permissions = @(
-                        [PSCustomObject]@{P1 = $null      ; P2 = 'Bob' ; P3 = 'Bob'; P4 = 'Mike'  ; P5 = ''    ; P6 = 'Chuck' }
-                        [PSCustomObject]@{P1 = 'SiteCode' ; P2 = ''    ; P3 = ''   ; P4 = ''      ; P5 = 'Mike'; P6 = '' }
-                        [PSCustomObject]@{P1 = 'GroupName'; P2 = ''    ; P3 = ''   ; P4 = ''      ; P5 = ''    ; P6 = '' }
-                        [PSCustomObject]@{P1 = 'Path'     ; P2 = 'L'   ; P3 = 'L'  ; P4 = 'L'     ; P5 = 'L'   ; P6 = 'L' }
-                        [PSCustomObject]@{P1 = 'Folder'   ; P2 = 'R'   ; P3 = 'W'  ; P4 = 'R'     ; P5 = 'R'   ; P6 = 'R' }
-                    )
-                    Expected    = @{
-                        Type        = 'FatalError'
-                        Description = "All objects defined in the matrix need to be unique. Duplicate AD Objects can also be generated from the 'Settings' worksheet combined with the header rows in the 'Permissions' worksheet."
-                        Name        = 'AD Object not unique'
-                        Value       = @('Mike', 'Bob')
-                    }
-                }
-
-                $TestName = 'an AD object name is missing in the header row'
-                @{
-                    TestName    = $TestName
-                    Permissions = @(
-                        [PSCustomObject]@{P1 = $null      ; P2 = $null }
-                        [PSCustomObject]@{P1 = 'SiteCode' ; P2 = $null }
-                        [PSCustomObject]@{P1 = 'GroupName'; P2 = $null }
-                        [PSCustomObject]@{P1 = 'F1'  ; P2 = 'R' }
-                        [PSCustomObject]@{P1 = 'F2'  ; P2 = 'R' }
-                    )
-                    Expected    = @{
-                        Type        = 'FatalError'
-                        Description = "Every column in the worksheet 'Permissions' needs to have an AD object name in the header row. The AD object name can not be blank."
-                        Name        = 'AD Object name missing'
-                        Value       = $null
-                    }
-                }
-
                 $TestName = "incorrect permission character (not 'l', 'c', 'w', 'r', 'i' or ' ') is found"
                 @{
                     TestName    = $TestName
@@ -3086,6 +3050,62 @@ InModuleScope $moduleName {
             }
         }
     }
+    Describe 'Test-AdObjectsHC' {
+        Context 'a FatalError object is created when' {
+            $TestCases = @(
+                @{
+                    TestName  = 'duplicate AD objects are found'
+                    ADObjects = @{
+                        P2 = @{SamAccountName = 'bob' }
+                        P3 = @{SamAccountName = 'bob' }
+                        P4 = @{SamAccountName = 'mike' }
+                        P5 = @{SamAccountName = 'mike' }
+                        P6 = @{SamAccountName = 'jack' }
+                    }
+                    Expected  = @{
+                        Type        = 'FatalError'
+                        Description = "All objects defined in the matrix need to be unique. Duplicate AD Objects can also be generated from the 'Settings' worksheet combined with the header rows in the 'Permissions' worksheet."
+                        Name        = 'AD Object not unique'
+                        Value       = @('mike', 'bob')
+                    }
+                }
+
+                @{
+                    TestName  = 'an AD object name is missing in the header row'
+                    ADObjects = @{
+                        P2 = @{SamAccountName = '' }
+                        P3 = @{SamAccountName = 'bob' }
+                    }
+                    Expected  = @{
+                        Type        = 'FatalError'
+                        Description = "Every column in the worksheet 'Permissions' needs to have an AD object name in the header row. The AD object name can not be blank."
+                        Name        = 'AD Object name missing'
+                        Value       = $null
+                    }
+                }
+            )
+            It '<TestName>' -TestCases $TestCases {
+                $Actual = Test-AdObjectsHC -ADObjects $ADObjects
+
+                $Actual.Type | Should -Be $Expected.Type
+                $Actual.Description | Should -Be $Expected.Description
+                $Actual.Name | Should -Be $Expected.Name
+                $Actual.Value | Should -Be $Expected.Value
+            }
+        }
+        It 'no output is generated when everything is correct' {
+            $ADObjects = @{
+                P2 = @{SamAccountName = 'a' }
+                P3 = @{SamAccountName = 'b' }
+                P4 = @{SamAccountName = 'c' }
+                P5 = @{SamAccountName = 'd' }
+                P6 = @{SamAccountName = 'e' }
+            }
+
+            $Actual = Test-AdObjectsHC -ADObjects $ADObjects
+            $Actual | Should -BeNullOrEmpty
+        }
+    } -Tag test
     Describe 'Test-MatrixSettingHC' {
         Context 'a FatalError object is created when' {
             $TestCases = @(

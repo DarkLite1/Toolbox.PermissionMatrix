@@ -1100,6 +1100,40 @@ Function Test-ExpandedMatrixHC {
     }
 }
 
+Function Test-AdObjectsHC {
+    Param(
+        [parameter(Mandatory)]
+        [HashTable]$ADObjects
+    )
+
+    try {
+        #region Duplicate AD Objects
+        if ($NotUniqueADObjects = @($ADObjects.Values.SamAccountName | Group-Object).Where( { $_.Count -ge 2 })) {
+            [PSCustomObject]@{
+                Type        = 'FatalError'
+                Name        = 'AD Object not unique'
+                Description = "All objects defined in the matrix need to be unique. Duplicate AD Objects can also be generated from the 'Settings' worksheet combined with the header rows in the 'Permissions' worksheet."
+                Value       = $NotUniqueADObjects.Name
+            }
+        }
+        #endregion
+    
+        #region AD Object name missing
+        if (@(($ADObjects.Values.SamAccountName).Where( { -not $_ })).Count -ge 1) {
+            [PSCustomObject]@{
+                Type        = 'FatalError'
+                Name        = 'AD Object name missing'
+                Description = "Every column in the worksheet 'Permissions' needs to have an AD object name in the header row. The AD object name can not be blank."
+                Value       = $null
+            }
+        }
+        #endregion
+    }
+    catch {
+        throw "Failed testing AD object names: $_"
+    }
+}
+
 Function Test-MatrixPermissionsHC {
     <#
     .SYNOPSIS
@@ -1161,31 +1195,6 @@ Function Test-MatrixPermissionsHC {
                     Name        = 'Missing columns'
                     Description = 'At least 2 columns are required: 1 for the folder names and 1 where the permissions are defined.'
                     Value       = "$(@($Props).Count) column"
-                }
-            }
-            #endregion
-
-            $HeaderRows = $Permissions | Select-Object -First 3
-            $ADObjects = ConvertTo-MatrixADNamesHC -ColumnHeaders $HeaderRows
-
-            #region Duplicate AD Objects
-            if ($NotUniqueADObjects = @($ADObjects.Values.SamAccountName | Group-Object).Where( { $_.Count -ge 2 })) {
-                [PSCustomObject]@{
-                    Type        = 'FatalError'
-                    Name        = 'AD Object not unique'
-                    Description = "All objects defined in the matrix need to be unique. Duplicate AD Objects can also be generated from the 'Settings' worksheet combined with the header rows in the 'Permissions' worksheet."
-                    Value       = $NotUniqueADObjects.Name
-                }
-            }
-            #endregion
-
-            #region AD Object name missing
-            if (@(($ADObjects.Values.SamAccountName).Where( { $_ })).Count -eq 0) {
-                [PSCustomObject]@{
-                    Type        = 'FatalError'
-                    Name        = 'AD Object name missing'
-                    Description = "Every column in the worksheet 'Permissions' needs to have an AD object name in the header row. The AD object name can not be blank."
-                    Value       = $null
                 }
             }
             #endregion
@@ -1388,6 +1397,7 @@ Function Test-MatrixSettingHC {
         }
     }
 }
+
 Function Test-FormDataHC {
     <#
     .SYNOPSIS
