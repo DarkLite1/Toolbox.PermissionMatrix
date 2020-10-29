@@ -1340,7 +1340,7 @@ Function Test-FormDataHC {
         Try {
             if ($FormData.Count -ge 2) {
                 return [PSCustomObject]@{
-                    Type        = 'Warning'
+                    Type        = 'FatalError'
                     Name        = 'Only one row allowed'
                     Description = "Found $($FormData.Count) rows of data were only one row is allowed."
                     Value       = $MissingProperty
@@ -1352,7 +1352,7 @@ Function Test-FormDataHC {
             #region Test mandatory property MatrixFormStatus
             if ($Properties -notContains 'MatrixFormStatus') {
                 return [PSCustomObject]@{
-                    Type        = 'Warning'
+                    Type        = 'FatalError'
                     Name        = 'Missing column header'
                     Description = "The column header MatrixFormStatus is mandatory."
                     Value       = 'MatrixFormStatus'
@@ -1373,7 +1373,7 @@ Function Test-FormDataHC {
             if ($MissingProperty = $mandatoryProperties.Where( { 
                         $Properties -notContains $_ })) {
                 return [PSCustomObject]@{
-                    Type        = 'Warning'
+                    Type        = 'FatalError'
                     Name        = 'Missing column header'
                     Description = "The column headers $mandatoryProperties are mandatory."
                     Value       = $MissingProperty
@@ -1390,7 +1390,7 @@ Function Test-FormDataHC {
                             (-not ($FormData.$_)) -and 
                             ($Properties -contains $_) })) {
                     return [PSCustomObject]@{
-                        Type        = 'Warning'
+                        Type        = 'FatalError'
                         Name        = 'Missing value'
                         Description = "Values for $mandatoryPropertyValues are mandatory."
                         Value       = $BlankProperty

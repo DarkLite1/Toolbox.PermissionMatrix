@@ -99,7 +99,7 @@ InModuleScope $moduleName {
         }
     }
     Describe 'Test-FormDataHC' {
-        Context 'should create a warning object when' {
+        Context 'should create a FatalError object when' {
             It 'there is more than one object' {
                 $testData = @(
                     [PSCustomObject]@{
@@ -112,7 +112,7 @@ InModuleScope $moduleName {
 
                 $actual = Test-FormDataHC -FormData $testData
 
-                $actual.Type | Should -Be 'Warning'
+                $actual.Type | Should -Be 'FatalError'
                 $actual.Name | Should -Be 'Only one row allowed'
             }
             Context 'a property is missing' {
@@ -139,7 +139,7 @@ InModuleScope $moduleName {
 
                     $actual = Test-FormDataHC -FormData $testData
 
-                    $actual.Type | Should -Be 'Warning'
+                    $actual.Type | Should -Be 'FatalError'
                     $actual.Name | Should -Be 'Missing column header'
                     $actual.Value | Should -Be $Name
                 }
@@ -167,13 +167,13 @@ InModuleScope $moduleName {
 
                     $actual = Test-FormDataHC -FormData $testData
 
-                    $actual.Type | Should -Be 'Warning'
+                    $actual.Type | Should -Be 'FatalError'
                     $actual.Name | Should -Be 'Missing value'
                     $actual.Value | Should -Be $Name
                 }
             }
         }
-        Context 'should not create a warning object when' {
+        Context 'should not create output when' {
             Context 'MatrixFormStatus is not Enabled and a property value is missing' {
                 It '<Name>' -TestCases @(
                     @{Name = 'MatrixResponsible' }
@@ -201,7 +201,7 @@ InModuleScope $moduleName {
                 }
             }
         }
-    }
+    } -tag test
     Describe 'ConvertTo-AceHC' {
         It 'L for List' {
             $Expected = New-Object System.Security.AccessControl.FileSystemAccessRule(
