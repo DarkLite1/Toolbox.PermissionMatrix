@@ -201,7 +201,7 @@ InModuleScope $moduleName {
                 }
             }
         }
-    } -tag test
+    }
     Describe 'ConvertTo-AceHC' {
         It 'L for List' {
             $Expected = New-Object System.Security.AccessControl.FileSystemAccessRule(

@@ -1,56 +1,5 @@
 #Requires -Version 5.1
 
-# obsolete:
-Function Get-MatrixAdObjectNamesHC {
-    <#
-    .SYNOPSIS
-        Get all AD object names used in a matrix Excel file
-
-    .DESCRIPTION
-        Get all AD object names used in a matrix Excel file. Generate the complete AD name from the
-        Excel sheet 'Settings' together with the sheet 'Permissions'.
-
-    .PARAMETER Path
-        Location to the Excel file or folder, containing the Excel files. Each file is assumed to have a worksheet 'Permissions' and 'Settings'.
- #>
-
-    [CmdletBinding()]
-    [OutputType([PSCustomObject[]])]
-    Param (
-        [Parameter(Mandatory)]
-        [ValidateScript( { Test-Path -Path $_ })]
-        [String]$Path
-    )
-
-    Try {
-        $ItemPath = Get-Item -LiteralPath $Path
-
-        $ExcelFiles = @($ItemPath)
-
-        if ($ItemPath.PSIsContainer) {
-            $ExcelFiles = Get-ChildItem $Path\* -Include *.xlsx -File
-        }
-
-        foreach ($F in $ExcelFiles) {
-            if ($Settings = Import-Excel $F -Sheet Settings -DataOnly | 
-                Where-Object Status -EQ Enabled) {
-                $Permissions = Import-Excel $F -Sheet Permissions -DataOnly -NoHeader
-
-                $Matrix = ConvertTo-MatrixHC -Permissions $Permissions -Settings $Settings
-
-                [PSCustomObject]@{
-                    FileName = $F.Name
-                    ADObject = $Matrix.Permissions.ACL.Keys | 
-                    Sort-Object -Unique
-                }
-            }
-        }
-    }
-    Catch {
-        throw "Failed retrieving matrix AD objects from path '$Path': $_"
-    }
-}
-
 Function ConvertTo-AceHC {
     <#
     .SYNOPSIS
@@ -1053,6 +1002,94 @@ Function Test-AdObjectsHC {
     }
 }
 
+Function Test-FormDataHC {
+    <#
+    .SYNOPSIS
+        Verify input for the Excel sheet 'FormData'.
+
+    .DESCRIPTION
+        Verify if the Excel sheet 'FormData' contains the correct data.
+
+    .PARAMETER FormData
+        Represents the data coming from the Excel sheet 'FormData'.
+#>
+
+    [CmdletBinding()]
+    [OutputType([PSCustomObject[]])]
+    Param (
+        [Parameter(Mandatory)]
+        [PSCustomObject[]]$FormData
+    )
+
+    Process {
+        Try {
+            if ($FormData.Count -ge 2) {
+                return [PSCustomObject]@{
+                    Type        = 'FatalError'
+                    Name        = 'Only one row allowed'
+                    Description = "Found $($FormData.Count) rows of data were only one row is allowed."
+                    Value       = $MissingProperty
+                }
+            }
+
+            $Properties = ($FormData | Get-Member -MemberType NoteProperty).Name
+
+            #region Test mandatory property MatrixFormStatus
+            if ($Properties -notContains 'MatrixFormStatus') {
+                return [PSCustomObject]@{
+                    Type        = 'FatalError'
+                    Name        = 'Missing column header'
+                    Description = "The column header MatrixFormStatus is mandatory."
+                    Value       = 'MatrixFormStatus'
+                }
+            }
+            #endregion
+
+            #region Mandatory property
+            $mandatoryProperties = @(
+                'MatrixFormStatus',
+                'MatrixCategoryName' , 
+                'MatrixSubCategoryName' , 
+                'MatrixResponsible',
+                'MatrixFolderDisplayName' , 
+                'MatrixFolderPath'  
+            )
+
+            if ($MissingProperty = $mandatoryProperties.Where( { 
+                        $Properties -notContains $_ })) {
+                return [PSCustomObject]@{
+                    Type        = 'FatalError'
+                    Name        = 'Missing column header'
+                    Description = "The column headers $mandatoryProperties are mandatory."
+                    Value       = $MissingProperty
+                }
+            }
+            #endregion
+
+            if ($FormData.MatrixFormStatus -eq 'Enabled') {
+                $mandatoryPropertyValues = $mandatoryProperties.Where( {
+                        $_ -ne 'MatrixFormStatus' })
+
+                #region Mandatory property value
+                if ($BlankProperty = $mandatoryPropertyValues.Where( {
+                            (-not ($FormData.$_)) -and 
+                            ($Properties -contains $_) })) {
+                    return [PSCustomObject]@{
+                        Type        = 'FatalError'
+                        Name        = 'Missing value'
+                        Description = "Values for $mandatoryPropertyValues are mandatory."
+                        Value       = $BlankProperty
+                    }
+                }
+                #endregion
+            }
+        }
+        Catch {
+            throw "Failed testing the Excel sheet 'FormData': $_"
+        }
+    }
+}
+
 Function Test-MatrixPermissionsHC {
     <#
     .SYNOPSIS
@@ -1313,94 +1350,6 @@ Function Test-MatrixSettingHC {
         }
         Catch {
             throw "Failed testing the Excel sheet 'Settings' row for incorrect data: $_"
-        }
-    }
-}
-
-Function Test-FormDataHC {
-    <#
-    .SYNOPSIS
-        Verify input for the Excel sheet 'FormData'.
-
-    .DESCRIPTION
-        Verify if the Excel sheet 'FormData' contains the correct data.
-
-    .PARAMETER FormData
-        Represents the data coming from the Excel sheet 'FormData'.
-#>
-
-    [CmdletBinding()]
-    [OutputType([PSCustomObject[]])]
-    Param (
-        [Parameter(Mandatory)]
-        [PSCustomObject[]]$FormData
-    )
-
-    Process {
-        Try {
-            if ($FormData.Count -ge 2) {
-                return [PSCustomObject]@{
-                    Type        = 'FatalError'
-                    Name        = 'Only one row allowed'
-                    Description = "Found $($FormData.Count) rows of data were only one row is allowed."
-                    Value       = $MissingProperty
-                }
-            }
-
-            $Properties = ($FormData | Get-Member -MemberType NoteProperty).Name
-
-            #region Test mandatory property MatrixFormStatus
-            if ($Properties -notContains 'MatrixFormStatus') {
-                return [PSCustomObject]@{
-                    Type        = 'FatalError'
-                    Name        = 'Missing column header'
-                    Description = "The column header MatrixFormStatus is mandatory."
-                    Value       = 'MatrixFormStatus'
-                }
-            }
-            #endregion
-
-            #region Mandatory property
-            $mandatoryProperties = @(
-                'MatrixFormStatus',
-                'MatrixCategoryName' , 
-                'MatrixSubCategoryName' , 
-                'MatrixResponsible',
-                'MatrixFolderDisplayName' , 
-                'MatrixFolderPath'  
-            )
-
-            if ($MissingProperty = $mandatoryProperties.Where( { 
-                        $Properties -notContains $_ })) {
-                return [PSCustomObject]@{
-                    Type        = 'FatalError'
-                    Name        = 'Missing column header'
-                    Description = "The column headers $mandatoryProperties are mandatory."
-                    Value       = $MissingProperty
-                }
-            }
-            #endregion
-
-            if ($FormData.MatrixFormStatus -eq 'Enabled') {
-                $mandatoryPropertyValues = $mandatoryProperties.Where( {
-                        $_ -ne 'MatrixFormStatus' })
-
-                #region Mandatory property value
-                if ($BlankProperty = $mandatoryPropertyValues.Where( {
-                            (-not ($FormData.$_)) -and 
-                            ($Properties -contains $_) })) {
-                    return [PSCustomObject]@{
-                        Type        = 'FatalError'
-                        Name        = 'Missing value'
-                        Description = "Values for $mandatoryPropertyValues are mandatory."
-                        Value       = $BlankProperty
-                    }
-                }
-                #endregion
-            }
-        }
-        Catch {
-            throw "Failed testing the Excel sheet 'FormData': $_"
         }
     }
 }
