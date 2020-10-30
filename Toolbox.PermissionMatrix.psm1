@@ -733,7 +733,7 @@ Function Get-AdUserPrincipalNameHC {
         $mailAddress in 
         ($email | Sort-Object -Unique)
     ) {
-        $adObject = Get-ADObject -Filter "mail -eq '$mailAddress'" -Property 'mail'
+        $adObject =Get-ADObject -Filter "ProxyAddresses -eq 'smtp:$mailAddress'" -Property 'mail'
 
         if (-not $adObject) {
             $notFound += $mailAddress
