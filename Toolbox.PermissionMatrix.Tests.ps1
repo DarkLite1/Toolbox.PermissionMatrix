@@ -24,7 +24,7 @@ InModuleScope $moduleName {
                     }
                 }
 
-                $actual = Get-AdUserPrincipalNameHC -email 'bob@mail.com'
+                $actual = Get-AdUserPrincipalNameHC -Name 'bob@mail.com'
 
                 $actual.userPrincipalName | Should -Be 'bob@contoso.com'
                 $actual.notFound | Should -BeNullOrEmpty
@@ -43,7 +43,7 @@ InModuleScope $moduleName {
                     }
                 }
 
-                $actual = Get-AdUserPrincipalNameHC -email 'bob@mail.com'
+                $actual = Get-AdUserPrincipalNameHC -Name 'bob@mail.com'
 
                 $actual.userPrincipalName | Should -BeNullOrEmpty
                 $actual.notFound | Should -BeNullOrEmpty
@@ -79,7 +79,7 @@ InModuleScope $moduleName {
                     $testAdUserObjects
                 }
 
-                $actual = Get-AdUserPrincipalNameHC -email 'group@mail.com'
+                $actual = Get-AdUserPrincipalNameHC -Name 'group@mail.com'
 
                 $actual.userPrincipalName.Count | Should -BeExactly 2
                 $actual.userPrincipalName[0] | Should -Be 'bob@contoso.com'
@@ -91,7 +91,7 @@ InModuleScope $moduleName {
             It 'the email address is added to the notFound array' {
                 Mock Get-ADObject
 
-                $actual = Get-AdUserPrincipalNameHC -email 'bob@mail.com'
+                $actual = Get-AdUserPrincipalNameHC -Name 'bob@mail.com'
 
                 $actual.userPrincipalName | Should -BeNullOrEmpty
                 $actual.notFound | Should -Be 'bob@mail.com'

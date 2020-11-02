@@ -711,50 +711,52 @@ Function Get-AdUserPrincipalNameHC {
         addresses. For groups the user members are retrieved. The result will
         only contain UserPrincipalNames from AD user accounts that are enabled.
 
-    .PARAMETER email
-        User e-mail addresses or group e-mail addresses.
-
-    .NOTES
-        CHANGELOG
-        2020/10/28 Function born
-
-        AUTHOR Brecht.Gijbels@heidelbergcement.com #>
+    .PARAMETER Name
+        Can be an e-mail address or a SamAccountName of a user object or a
+        group object in AD.
+#>
 
     [CmdletBinding()]
     [OutputType([HashTable])]
     Param(
         [Parameter(Mandatory)]
-        [String[]]$email
+        [String[]]$Name
     )
 
-    $notFound = @()
+    try {
+        $notFound = @()
 
-    $userPrincipalName = foreach (
-        $mailAddress in 
-        ($email | Sort-Object -Unique)
-    ) {
-        $adObject =Get-ADObject -Filter "ProxyAddresses -eq 'smtp:$mailAddress'" -Property 'mail'
+        $result = foreach ($N in  ($Name | Sort-Object -Unique)) {
+            $adObject = Get-ADObject -Filter "ProxyAddresses -eq 'smtp:$N' -or SAMAccountName -eq '$N'" -Property 'mail'
 
-        if (-not $adObject) {
-            $notFound += $mailAddress
-            Continue
+            if ($adObject.Count -ge 2) {
+                throw "Multiple results found for name '$N': $($adObject.Name)"
+            }
+    
+            if (-not $adObject) {
+                $notFound += $N
+                Continue
+            }
+    
+            $adUsers = if ($adObject.ObjectClass -eq 'group') {
+                Get-ADGroupMember $adObject -Recursive
+            }
+            elseif ($adObject.ObjectClass -eq 'user') {
+                $adObject
+            }
+    
+            $adUsers | Get-ADUser |
+            Where-Object { $_.Enabled } |
+            Select-Object -ExpandProperty 'UserPrincipalName'
         }
-
-        $adUsers = if ($adObject.ObjectClass -eq 'group') {
-            Get-ADGroupMember $adObject -Recursive
-        }
-        elseif ($adObject.ObjectClass -eq 'user') {
-            $adObject
-        }
-
-        $adUsers | Get-ADUser |
-        Where-Object { $_.Enabled } |
-        Select-Object -ExpandProperty 'UserPrincipalName'
+    
+        @{
+            notFound          = $notFound
+            userPrincipalName = $result | Sort-Object -Unique
+        }    
     }
-
-    @{
-        notFound          = $notFound
-        userPrincipalName = $userPrincipalName | Sort-Object -Unique
+    catch {
+        throw "Failed converting email address or SamAccountName to userPrincipalName: $_"       
     }
 }
 
