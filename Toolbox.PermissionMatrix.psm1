@@ -423,6 +423,91 @@ Function Get-ADObjectDetailHC {
         Retrieve details about an AD object.
 
     .DESCRIPTION
+        Retrieve details about an AD object. If the SamAccountName is not found 
+        the property 'adObject' is not populated. If it is a group, the group
+        members are also retrieved and stored in the property 'adGroupMember'.
+
+    .PARAMETER SamAccountName
+        SamAccountName of the active directory object.
+
+    .PARAMETER MaxThreads
+        Quantity of jobs allowed to run at the same time when querying the 
+        active director for details.
+    #>
+
+    [CmdletBinding()]
+    [OutputType([PSCustomObject[]])]
+    Param (
+        [ValidateNotNullOrEmpty()]
+        [Parameter(Mandatory, ValueFromPipeline)]
+        [String[]]$SamAccountName,
+        [Int]$MaxThreads = 3
+    )
+
+    Begin {
+        $uniqueSamAccountNames = $SamAccountName | 
+        Select-Object -Property @{
+            Name       = 'name'; 
+            Expression = { "$($_)".Trim() } 
+        } -Unique |
+        Select-Object -ExpandProperty name
+
+        Write-Verbose "Retrieve AD details for $($uniqueSamAccountNames.Count) unique SamAccountNames"
+
+        $jobs = @()
+
+        $scriptBlock = {
+            Param (
+                $SamAccountName
+            )
+            Try {
+                $adObject = Get-ADObject -Filter 'SamAccountName -eq $SamAccountName'
+
+                if ($adObject.ObjectClass -eq 'group') {
+                    $adGroupMember = Get-ADGroupMember -Identity $adObject -Recursive
+                }
+
+                [PSCustomObject]@{
+                    samAccountName = $SamAccountName
+                    adObject       = $adObject
+                    adGroupMember  = $adGroupMember
+                }
+            }
+            Catch {
+                $errorMessage = $_; $global:error.RemoveAt(0)
+                throw "Failed retrieving details for SamAccountName '$SamAccountName': $errorMessage"
+            }
+        }
+    }
+
+    Process {
+        ForEach ($S in $uniqueSamAccountNames) {
+            Write-Verbose "Get AD details for SamAccountName '$S'"
+            $startJobParams = @{
+                Name         = 'Get AD object details'
+                scriptBlock  = $scriptBlock
+                ArgumentList = $S
+            }
+            $jobs += Start-Job @startJobParams
+            Wait-MaxRunningJobsHC -Name $jobs -MaxThreads $MaxThreads
+        }
+    }
+
+    End {
+        $jobs | Wait-Job | Receive-Job | 
+        Select-Object -Property 'samAccountName', 'adObject', 'adGroupMember'
+
+        $jobs | Remove-Job -Force -EA ignore
+        Write-Verbose 'Add AD object details retrieved'
+    }
+}
+
+Function Get-ADObjectDetailHCold {
+    <#
+    .SYNOPSIS
+        Retrieve details about an AD object.
+
+    .DESCRIPTION
         Check if a SamAccountName for a group or user exists in active 
         directory and in case it's a group, check if it has members. When 
         checking for members the users defined in 'ExcludeMember'

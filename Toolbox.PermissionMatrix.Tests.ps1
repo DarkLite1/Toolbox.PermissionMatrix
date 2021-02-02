@@ -1,13 +1,17 @@
 #Requires -Modules Pester
 #Requires -Version 5.1
 
-BeforeAll {
+BeforeDiscovery {
+    # used by inModuleScope
     $moduleName = 'Toolbox.PermissionMatrix'
 
     $testScript = $PSCommandPath.Replace('.Tests.ps1', '.psm1')
 
     Remove-Module $moduleName -Force -Verbose:$false -EA Ignore
     Import-Module $testScript -Force -Verbose:$false
+}
+BeforeAll {
+    $startJobCommand = Get-Command Start-Job
 }
 
 Describe 'Get-AdUserPrincipalNameHC' {
@@ -1060,6 +1064,128 @@ Describe 'Format-SettingStringsHC' {
     }
 }
 Describe 'Get-ADObjectDetailHC' {
+    BeforeAll {
+        Mock Start-Job -MockWith {
+            & $startJobCommand -Scriptblock { 1 }
+        } 
+        Mock Start-Job -MockWith {
+            & $startJobCommand -Scriptblock { 
+                [PSCustomObject]@{
+                    samAccountName = 'lswagger'
+                    adObject       = @{ 
+                        ObjectClass    = 'user'
+                        Name           = 'Bob Lee Swagger'
+                        SamAccountName = 'lswagger'
+                    }
+                    adGroupMember  = $null
+                }
+            }
+        } -ParameterFilter { $ArgumentList[0] -eq 'lswagger' }
+        Mock Start-Job -MockWith {
+            & $startJobCommand -Scriptblock { 
+                [PSCustomObject]@{
+                    samAccountName = 'captains'
+                    adObject       = @{ 
+                        ObjectClass    = 'group'
+                        Name           = 'Star Trek Captains' 
+                        SamAccountName = 'captains'
+                    }
+                    adGroupMember  = @(
+                        @{ 
+                            ObjectClass    = 'user'
+                            Name           = 'Jean Luc Picard'
+                            SamAccountName = 'picard' 
+                        }
+                        @{ 
+                            ObjectClass    = 'user'
+                            Name           = 'James T. Kirk'
+                            SamAccountName = 'kirk' 
+                        }
+                    )
+                }
+            }
+        } -ParameterFilter { $ArgumentList[0] -eq 'captains' }
+
+        $testResult = Get-ADObjectDetailHC -SamAccountName 'lswagger', 'lswagger', 'captains'
+    }
+    It 'only unique SamAccountNames are checked' {
+        Should -Invoke Start-Job -Times 1 -Exactly -Scope Describe -ParameterFilter { 
+            $ArgumentList[0] -eq 'lswagger' 
+        }
+        Should -Invoke Start-Job -Times 1 -Exactly -Scope Describe -ParameterFilter { 
+            $ArgumentList[0] -eq 'captains' 
+        }
+    }
+    Context 'an object is returned with property' {
+        It 'SamAccountName' {
+            $testResult[0].SamAccountName | Should -Be 'lswagger'
+            $testResult[1].SamAccountName | Should -Be 'captains'
+        }
+        Context 'adObject' {
+            It 'ObjectClass' {
+                $testResult[0].adObject.ObjectClass | Should -Be 'user'
+                $testResult[1].adObject.ObjectClass | Should -Be 'group'
+            }
+            It 'Name' {
+                $testResult[0].adObject.Name | Should -Be 'Bob Lee Swagger'
+                $testResult[1].adObject.Name | Should -Be 'Star Trek Captains'
+            }
+            It 'SamAccountName' {
+                $testResult[0].adObject.SamAccountName | Should -Be 'lswagger'
+                $testResult[1].adObject.SamAccountName | Should -Be 'captains'
+            }
+        }
+        Context 'adGroupMember' {
+            Context "for AD object type 'user'" {
+                It 'is null' {
+                    $testResult[0].adGroupMember | Should -BeNullOrEmpty
+                }
+            }
+            Context "for AD object type 'group'" {
+                It 'ObjectClass' {
+                    $testResult[1].adGroupMember[0].ObjectClass | Should -Be 'user'
+                    $testResult[1].adGroupMember[1].ObjectClass | Should -Be 'user'
+                }
+                It 'Name' {
+                    $testResult[1].adGroupMember[0].Name | 
+                    Should -Be 'Jean Luc Picard'
+                    $testResult[1].adGroupMember[1].Name | 
+                    Should -Be 'James T. Kirk'
+                }
+                It 'SamAccountName' {
+                    $testResult[1].adGroupMember[0].SamAccountName | 
+                    Should -Be 'picard'
+                    $testResult[1].adGroupMember[1].SamAccountName | 
+                    Should -Be 'kirk'
+                }
+            }
+        }
+    }
+    Context 'when a SamAccountName is not found in AD' {
+        BeforeAll {
+            Mock Start-Job -MockWith {
+                & $startJobCommand -Scriptblock { 
+                    [PSCustomObject]@{
+                        samAccountName = 'unknown'
+                        adObject       = $null
+                        adGroupMember  = $null
+                    }
+                }
+            } -ParameterFilter { $ArgumentList[0] -eq 'unknown' }
+
+            $testResult = Get-ADObjectDetailHC -SamAccountName 'unknown'
+        }
+        It 'SamAccountName is populated' {
+            $testResult.SamAccountName | Should -Be 'unknown'
+        }
+        it 'adObject is null' {
+            $testResult.adObject | Should -BeNullOrEmpty
+        }
+        it 'adGroupMember is null' {
+            $testResult.adGroupMember | Should -BeNullOrEmpty
+        }
+    }
+
     Context 'when the AD Object does not exist then' {
         It 'ADObject and Member are NULL' {
             Mock Get-ADObject
@@ -1073,172 +1199,172 @@ Describe 'Get-ADObjectDetailHC' {
             $Actual = Get-ADObjectDetailHC -Name NotExisting
             Assert-Equivalent -Actual $Actual -Expected $Expected
         }
-    }
+    } -Skip
     Context 'when the AD object exist then' {
-        # InModuleScope $moduleName {
+        InModuleScope $moduleName {
 
-        Context 'user' {
-            It 'Member is NULL' {
-                $testADObject = New-Object Microsoft.ActiveDirectory.Management.ADObject Identity -Property @{
-                    SamAccountName = 'Bob'
-                    ObjectClass    = 'user'
-                }
-
-                Mock Get-ADObject {
-                    $testADObject
-                }
-
-                $Expected = [PSCustomObject]@{
-                    Name     = $testADObject.SamAccountName
-                    ADObject = $testADObject
-                    Member   = $null
-                }
-
-                $Actual = Get-ADObjectDetailHC -Name $testADObject.SamAccountName
-
-                $Actual.Name | Should -Be $Expected.Name
-                $Actual.Member | Should -Be $Expected.Member
-                $Actual.ADObject | Should -Be $Expected.ADObject
-                # Assert-Equivalent -Actual $Actual -Expected $Expected
-            }
-        }
-        Context 'group' {
-            It "Member is always True for 'Domain users'" {
-                $testADObject = New-Object Microsoft.ActiveDirectory.Management.ADGroup Identity -Property @{
-                    SamAccountName = 'Domain users'
-                    ObjectClass    = 'group'
-                }
-
-                Mock Get-ADObject {
-                    $testADObject
-                }
-
-                $Expected = [PSCustomObject]@{
-                    Name     = $testADObject.SamAccountName
-                    ADObject = $testADObject
-                    Member   = $true
-                }
-
-                $Actual = Get-ADObjectDetailHC -Name $testADObject.SamAccountName
-                Assert-Equivalent -Actual $Actual -Expected $Expected
-            }
-            It 'Member is True when there are user objects in the group' {
-                $testADObject = New-Object Microsoft.ActiveDirectory.Management.ADGroup Identity -Property @{
-                    SamAccountName = 'BEL Managers'
-                    ObjectClass    = 'group'
-                }
-
-                Mock Get-ADGroupMember {
-                    New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
-                        SamAccountName = 'Mike'
+            Context 'user' {
+                It 'Member is NULL' {
+                    $testADObject = New-Object Microsoft.ActiveDirectory.Management.ADObject Identity -Property @{
+                        SamAccountName = 'Bob'
                         ObjectClass    = 'user'
                     }
-                }
 
-                Mock Get-ADObject {
-                    $testADObject
-                }
-
-                $Expected = [PSCustomObject]@{
-                    Name     = $testADObject.SamAccountName
-                    ADObject = $testADObject
-                    Member   = $true
-                }
-
-                $Actual = Get-ADObjectDetailHC -Name $testADObject.SamAccountName
-                Assert-Equivalent -Actual $Actual -Expected $Expected
-            }
-            It 'Member is True when there are user objects and a place holder account in the group' {
-                $testADObject = New-Object Microsoft.ActiveDirectory.Management.ADGroup Identity -Property @{
-                    SamAccountName = 'BEL Managers'
-                    ObjectClass    = 'group'
-                }
-
-                $testMember = @(
-                    New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
-                        SamAccountName = 'Mike'
-                        ObjectClass    = 'user'
+                    Mock Get-ADObject {
+                        $testADObject
                     }
-                    New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
+
+                    $Expected = [PSCustomObject]@{
+                        Name     = $testADObject.SamAccountName
+                        ADObject = $testADObject
+                        Member   = $null
+                    }
+
+                    $Actual = Get-ADObjectDetailHC -Name $testADObject.SamAccountName
+
+                    $Actual.Name | Should -Be $Expected.Name
+                    $Actual.Member | Should -Be $Expected.Member
+                    $Actual.ADObject | Should -Be $Expected.ADObject
+                    # Assert-Equivalent -Actual $Actual -Expected $Expected
+                }
+            }
+            Context 'group' {
+                It "Member is always True for 'Domain users'" {
+                    $testADObject = New-Object Microsoft.ActiveDirectory.Management.ADGroup Identity -Property @{
+                        SamAccountName = 'Domain users'
+                        ObjectClass    = 'group'
+                    }
+
+                    Mock Get-ADObject {
+                        $testADObject
+                    }
+
+                    $Expected = [PSCustomObject]@{
+                        Name     = $testADObject.SamAccountName
+                        ADObject = $testADObject
+                        Member   = $true
+                    }
+
+                    $Actual = Get-ADObjectDetailHC -Name $testADObject.SamAccountName
+                    Assert-Equivalent -Actual $Actual -Expected $Expected
+                }
+                It 'Member is True when there are user objects in the group' {
+                    $testADObject = New-Object Microsoft.ActiveDirectory.Management.ADGroup Identity -Property @{
+                        SamAccountName = 'BEL Managers'
+                        ObjectClass    = 'group'
+                    }
+
+                    Mock Get-ADGroupMember {
+                        New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
+                            SamAccountName = 'Mike'
+                            ObjectClass    = 'user'
+                        }
+                    }
+
+                    Mock Get-ADObject {
+                        $testADObject
+                    }
+
+                    $Expected = [PSCustomObject]@{
+                        Name     = $testADObject.SamAccountName
+                        ADObject = $testADObject
+                        Member   = $true
+                    }
+
+                    $Actual = Get-ADObjectDetailHC -Name $testADObject.SamAccountName
+                    Assert-Equivalent -Actual $Actual -Expected $Expected
+                }
+                It 'Member is True when there are user objects and a place holder account in the group' {
+                    $testADObject = New-Object Microsoft.ActiveDirectory.Management.ADGroup Identity -Property @{
+                        SamAccountName = 'BEL Managers'
+                        ObjectClass    = 'group'
+                    }
+
+                    $testMember = @(
+                        New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
+                            SamAccountName = 'Mike'
+                            ObjectClass    = 'user'
+                        }
+                        New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
+                            SamAccountName = 'PlaceHolder'
+                            ObjectClass    = 'user'
+                        }
+                    )
+
+                    Mock Get-ADGroupMember {
+                        $testMember
+                    }
+
+                    Mock Get-ADObject {
+                        $testADObject
+                    }
+
+                    $Expected = [PSCustomObject]@{
+                        Name     = $testADObject.SamAccountName
+                        ADObject = $testADObject
+                        Member   = $true
+                    }
+
+                    $Actual = Get-ADObjectDetailHC -Name $testADObject.SamAccountName -ExcludeMember $testMember[1].SamAccountName
+                    Assert-Equivalent -Actual $Actual -Expected $Expected
+                }
+                It 'Member is False when there are no user objects in the group' {
+                    $testADObject = New-Object Microsoft.ActiveDirectory.Management.ADGroup Identity -Property @{
+                        SamAccountName = 'BEL Managers'
+                        ObjectClass    = 'group'
+                    }
+
+                    Mock Get-ADGroupMember {
+                        New-Object Microsoft.ActiveDirectory.Management.ADGroup Identity -Property @{
+                            SamAccountName = 'Group 2'
+                            ObjectClass    = 'group'
+                        }
+                    }
+
+                    Mock Get-ADObject {
+                        $testADObject
+                    }
+
+                    $Expected = [PSCustomObject]@{
+                        Name     = $testADObject.SamAccountName
+                        ADObject = $testADObject
+                        Member   = $false
+                    }
+
+                    $Actual = Get-ADObjectDetailHC -Name $testADObject.SamAccountName
+                    Assert-Equivalent -Actual $Actual -Expected $Expected
+                }
+                It 'Member is False when there is only a place holder account in the group' {
+                    $testADObject = New-Object Microsoft.ActiveDirectory.Management.ADGroup Identity -Property @{
+                        SamAccountName = 'BEL Managers'
+                        ObjectClass    = 'group'
+                    }
+                    $testMember = New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
                         SamAccountName = 'PlaceHolder'
                         ObjectClass    = 'user'
                     }
-                )
 
-                Mock Get-ADGroupMember {
-                    $testMember
-                }
-
-                Mock Get-ADObject {
-                    $testADObject
-                }
-
-                $Expected = [PSCustomObject]@{
-                    Name     = $testADObject.SamAccountName
-                    ADObject = $testADObject
-                    Member   = $true
-                }
-
-                $Actual = Get-ADObjectDetailHC -Name $testADObject.SamAccountName -ExcludeMember $testMember[1].SamAccountName
-                Assert-Equivalent -Actual $Actual -Expected $Expected
-            }
-            It 'Member is False when there are no user objects in the group' {
-                $testADObject = New-Object Microsoft.ActiveDirectory.Management.ADGroup Identity -Property @{
-                    SamAccountName = 'BEL Managers'
-                    ObjectClass    = 'group'
-                }
-
-                Mock Get-ADGroupMember {
-                    New-Object Microsoft.ActiveDirectory.Management.ADGroup Identity -Property @{
-                        SamAccountName = 'Group 2'
-                        ObjectClass    = 'group'
+                    Mock Get-ADGroupMember {
+                        $testMember
                     }
-                }
 
-                Mock Get-ADObject {
-                    $testADObject
-                }
+                    Mock Get-ADObject {
+                        $testADObject
+                    }
 
-                $Expected = [PSCustomObject]@{
-                    Name     = $testADObject.SamAccountName
-                    ADObject = $testADObject
-                    Member   = $false
-                }
+                    $Expected = [PSCustomObject]@{
+                        Name     = $testADObject.SamAccountName
+                        ADObject = $testADObject
+                        Member   = $false
+                    }
 
-                $Actual = Get-ADObjectDetailHC -Name $testADObject.SamAccountName
-                Assert-Equivalent -Actual $Actual -Expected $Expected
-            }
-            It 'Member is False when there is only a place holder account in the group' {
-                $testADObject = New-Object Microsoft.ActiveDirectory.Management.ADGroup Identity -Property @{
-                    SamAccountName = 'BEL Managers'
-                    ObjectClass    = 'group'
+                    $Actual = Get-ADObjectDetailHC -Name $testADObject.SamAccountName -ExcludeMember $testMember.SamAccountName
+                    Assert-Equivalent -Actual $Actual -Expected $Expected
                 }
-                $testMember = New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
-                    SamAccountName = 'PlaceHolder'
-                    ObjectClass    = 'user'
-                }
-
-                Mock Get-ADGroupMember {
-                    $testMember
-                }
-
-                Mock Get-ADObject {
-                    $testADObject
-                }
-
-                $Expected = [PSCustomObject]@{
-                    Name     = $testADObject.SamAccountName
-                    ADObject = $testADObject
-                    Member   = $false
-                }
-
-                $Actual = Get-ADObjectDetailHC -Name $testADObject.SamAccountName -ExcludeMember $testMember.SamAccountName
-                Assert-Equivalent -Actual $Actual -Expected $Expected
             }
         }
-    }
-    # }
-}
+    } -Skip
+}   -Tag test
 Describe 'Get-DefaultAclHC' {
     Context 'an error is thrown' {
         $TestCases = @(
