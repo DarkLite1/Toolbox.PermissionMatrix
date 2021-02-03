@@ -944,6 +944,40 @@ Function Test-AclIsInheritedOnlyHC {
     }
 }
 
+Function Test-AdObjectsHC {
+    Param(
+        [parameter(Mandatory)]
+        [HashTable]$ADObjects
+    )
+
+    try {
+        #region Duplicate AD Objects
+        if ($NotUniqueADObjects = @($ADObjects.Values.SamAccountName | Group-Object).Where( { $_.Count -ge 2 })) {
+            [PSCustomObject]@{
+                Type        = 'FatalError'
+                Name        = 'AD Object not unique'
+                Description = "All objects defined in the matrix need to be unique. Duplicate AD Objects can also be generated from the 'Settings' worksheet combined with the header rows in the 'Permissions' worksheet."
+                Value       = $NotUniqueADObjects.Name
+            }
+        }
+        #endregion
+    
+        #region AD Object name missing
+        if (@(($ADObjects.Values.SamAccountName).Where( { -not $_ })).Count -ge 1) {
+            [PSCustomObject]@{
+                Type        = 'FatalError'
+                Name        = 'AD Object name missing'
+                Description = "Every column in the worksheet 'Permissions' needs to have an AD object name in the header row. The AD object name can not be blank."
+                Value       = $null
+            }
+        }
+        #endregion
+    }
+    catch {
+        throw "Failed testing AD object names: $_"
+    }
+}
+
 Function Test-ExpandedMatrixHC {
     <#
     .SYNOPSIS
@@ -976,19 +1010,27 @@ Function Test-ExpandedMatrixHC {
         [PSCustomObject[]]$Matrix,
         [Parameter(Mandatory)]
         [PSCustomObject[]]$ADObject,
+        [String[]]$ExcludedSamAccountName,
         [HashTable]$DefaultAcl
     )
 
     Try {
         #region Check if the matrix contains objects not available in ADObjects
-        $Matrix.ACL.Keys.Where( { $ADObject.Name -notContains $_ }).Foreach( {
+        $Matrix.ACL.Keys.Where( 
+            { $ADObject.samAccountName -notContains $_ }
+        ).Foreach( {
                 throw "Unknown AD Object '$_' found in the matrix."
             })
         #endregion
 
         #region Non existing AD Objects
-        if ($ADObjectsUnknown = $ADObject.Where( { -not $_.ADObject }).Name) {
-            if ($result = $ADObjectsUnknown.Where( { $Matrix.ACL.Keys -contains $_ })) {
+        if ($ADObjectsUnknown = $ADObject.Where( 
+                { -not $_.adObject }
+            ).samAccountName
+        ) {
+            if ($result = $ADObjectsUnknown.Where( 
+                    { $Matrix.ACL.Keys -contains $_ })
+            ) {
                 [PSCustomObject]@{
                     Type        = 'FatalError'
                     Name        = 'Unknown AD object'
@@ -1000,8 +1042,21 @@ Function Test-ExpandedMatrixHC {
         #endregion
 
         #region Empty AD groups
-        if ($ADGroupEmpty = $ADObject.Where( { ($_.ADObject.ObjectClass -eq 'group') -and (-not $_.Member) }).Name) {
-            if ($result = $ADGroupEmpty.Where( { $Matrix.ACL.Keys -contains $_ })) {
+        $emptyAdGroups = foreach ($group in $ADObject.Where( 
+                { $_.adObject.ObjectClass -eq 'group' })
+        ) {
+            $groupMembers = @($group.adGroupMember.SamAccountName).Where( {
+                    $ExcludedSamAccountName -notContains $_
+                })
+            if (-not $groupMembers) {
+                $group.samAccountName
+            }
+        }
+
+        if ($emptyAdGroups) {
+            if ($result = $emptyAdGroups.Where( 
+                    { $Matrix.ACL.Keys -contains $_ })
+            ) {
                 [PSCustomObject]@{
                     Type        = 'Information'
                     Name        = 'Empty groups'
@@ -1013,14 +1068,17 @@ Function Test-ExpandedMatrixHC {
         #endregion
 
         #region Inaccessible folders
-        $AdValidAccessAccounts = $ADObject.Where( {
-                (($_.ADObject.ObjectClass -eq 'group') -and ($_.Member)) -or
+        $validAdObjects = $ADObject.Where( {
+                (
+                    ($_.ADObject.ObjectClass -eq 'group') -and 
+                    ($emptyAdGroups -notContains $_.samAccountName)
+                ) -or
                 ($_.ADObject.ObjectClass -eq 'user')
-            }).Name
+            }).samAccountName
 
         if ($result = ($Matrix.Where( {
                         ($_.ACL.Keys.Count -ne 0) -and
-                        (-not ($_.ACL.Keys.Where( { $AdValidAccessAccounts -contains $_ }))) })).Path) {
+                        (-not ($_.ACL.Keys.Where( { $validAdObjects -contains $_ }))) })).Path) {
             [PSCustomObject]@{
                 Type        = 'Warning'
                 Name        = 'No folder access'
@@ -1052,40 +1110,6 @@ Function Test-ExpandedMatrixHC {
     }
     Catch {
         throw "Failed validating the expanded matrix: $_"
-    }
-}
-
-Function Test-AdObjectsHC {
-    Param(
-        [parameter(Mandatory)]
-        [HashTable]$ADObjects
-    )
-
-    try {
-        #region Duplicate AD Objects
-        if ($NotUniqueADObjects = @($ADObjects.Values.SamAccountName | Group-Object).Where( { $_.Count -ge 2 })) {
-            [PSCustomObject]@{
-                Type        = 'FatalError'
-                Name        = 'AD Object not unique'
-                Description = "All objects defined in the matrix need to be unique. Duplicate AD Objects can also be generated from the 'Settings' worksheet combined with the header rows in the 'Permissions' worksheet."
-                Value       = $NotUniqueADObjects.Name
-            }
-        }
-        #endregion
-    
-        #region AD Object name missing
-        if (@(($ADObjects.Values.SamAccountName).Where( { -not $_ })).Count -ge 1) {
-            [PSCustomObject]@{
-                Type        = 'FatalError'
-                Name        = 'AD Object name missing'
-                Description = "Every column in the worksheet 'Permissions' needs to have an AD object name in the header row. The AD object name can not be blank."
-                Value       = $null
-            }
-        }
-        #endregion
-    }
-    catch {
-        throw "Failed testing AD object names: $_"
     }
 }
 

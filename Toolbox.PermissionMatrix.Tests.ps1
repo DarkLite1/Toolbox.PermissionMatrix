@@ -210,7 +210,7 @@ Describe 'Test-FormDataHC' {
 }
 Describe 'ConvertTo-AceHC' {
     It 'L for List' {
-        $Expected = New-Object System.Security.AccessControl.FileSystemAccessRule(
+        $expected = New-Object System.Security.AccessControl.FileSystemAccessRule(
             "$env:USERDOMAIN\$env:USERNAME",
             [System.Security.AccessControl.FileSystemRights]::ReadAndExecute,
             [System.Security.AccessControl.InheritanceFlags]::ContainerInherit,
@@ -218,12 +218,12 @@ Describe 'ConvertTo-AceHC' {
             [System.Security.AccessControl.AccessControlType]::Allow
         )
 
-        $Actual = ConvertTo-AceHC -Type L -Name $env:USERNAME
+        $actual = ConvertTo-AceHC -Type L -Name $env:USERNAME
 
-        Assert-Equivalent -Actual $Actual -Expected $Expected
+        Assert-Equivalent -Actual $actual -Expected $expected
     }
     It 'W for Write' {
-        $Expected = @(
+        $expected = @(
             New-Object System.Security.AccessControl.FileSystemAccessRule(
                 "$env:USERDOMAIN\$env:USERNAME",
                 [System.Security.AccessControl.FileSystemRights]'CreateFiles, AppendData, DeleteSubdirectoriesAndFiles, ReadAndExecute, Synchronize',
@@ -241,12 +241,12 @@ Describe 'ConvertTo-AceHC' {
             )
         )
 
-        $Actual = ConvertTo-AceHC -Type W -Name $env:USERNAME
+        $actual = ConvertTo-AceHC -Type W -Name $env:USERNAME
 
-        Assert-Equivalent -Actual $Actual -Expected $Expected
+        Assert-Equivalent -Actual $actual -Expected $expected
     }
     It 'R for Read' {
-        $Expected = New-Object System.Security.AccessControl.FileSystemAccessRule(
+        $expected = New-Object System.Security.AccessControl.FileSystemAccessRule(
             "$env:USERDOMAIN\$env:USERNAME",
             [System.Security.AccessControl.FileSystemRights]::ReadAndExecute,
             [System.Security.AccessControl.InheritanceFlags]'ContainerInherit, ObjectInherit',
@@ -254,13 +254,13 @@ Describe 'ConvertTo-AceHC' {
             [System.Security.AccessControl.AccessControlType]::Allow
         )
 
-        $Actual = ConvertTo-AceHC -Type R -Name $env:USERNAME
+        $actual = ConvertTo-AceHC -Type R -Name $env:USERNAME
 
-        Assert-Equivalent -Actual $Actual -Expected $Expected
+        Assert-Equivalent -Actual $actual -Expected $expected
     }
     It 'F for FullControl' {
         # Standard List
-        $Expected = New-Object System.Security.AccessControl.FileSystemAccessRule(
+        $expected = New-Object System.Security.AccessControl.FileSystemAccessRule(
             "$env:USERDOMAIN\$env:USERNAME",
             [System.Security.AccessControl.FileSystemRights]::FullControl,
             [System.Security.AccessControl.InheritanceFlags]'ContainerInherit, ObjectInherit',
@@ -268,12 +268,12 @@ Describe 'ConvertTo-AceHC' {
             [System.Security.AccessControl.AccessControlType]::Allow
         )
 
-        $Actual = ConvertTo-AceHC -Type F -Name $env:USERNAME
+        $actual = ConvertTo-AceHC -Type F -Name $env:USERNAME
 
-        Assert-Equivalent -Actual $Actual -Expected $Expected
+        Assert-Equivalent -Actual $actual -Expected $expected
     }
     It 'M for Modify' {
-        $Expected = New-Object System.Security.AccessControl.FileSystemAccessRule(
+        $expected = New-Object System.Security.AccessControl.FileSystemAccessRule(
             "$env:USERDOMAIN\$env:USERNAME",
             [System.Security.AccessControl.FileSystemRights]::Modify,
             [System.Security.AccessControl.InheritanceFlags]'ContainerInherit, ObjectInherit',
@@ -281,9 +281,9 @@ Describe 'ConvertTo-AceHC' {
             [System.Security.AccessControl.AccessControlType]::Allow
         )
 
-        $Actual = ConvertTo-AceHC -Type M -Name $env:USERNAME
+        $actual = ConvertTo-AceHC -Type M -Name $env:USERNAME
 
-        Assert-Equivalent -Actual $Actual -Expected $Expected
+        Assert-Equivalent -Actual $actual -Expected $expected
     }
 }
 Describe 'ConvertTo-MatrixADNamesHC' {
@@ -351,24 +351,24 @@ Describe 'ConvertTo-MatrixADNamesHC' {
                     BeginReplace  = 'A'
                     MiddleReplace = 'B'
                 }
-                $Actual = ConvertTo-MatrixADNamesHC @testParams
+                $actual = ConvertTo-MatrixADNamesHC @testParams
                     
-                $Actual.SamAccountName | 
-                Should -BeExactly $Expected.SamAccountName
+                $actual.SamAccountName | 
+                Should -BeExactly $expected.SamAccountName
 
-                $Actual.P2.Original.Begin | 
-                Should -BeExactly $Expected.P2.Original.Begin
-                $Actual.P2.Original.Middle | 
-                Should -BeExactly $Expected.P2.Original.Middle
-                $Actual.P2.Original.End | 
-                Should -BeExactly $Expected.P2.Original.End
+                $actual.P2.Original.Begin | 
+                Should -BeExactly $expected.P2.Original.Begin
+                $actual.P2.Original.Middle | 
+                Should -BeExactly $expected.P2.Original.Middle
+                $actual.P2.Original.End | 
+                Should -BeExactly $expected.P2.Original.End
 
-                $Actual.P2.Converted.Begin | 
-                Should -BeExactly $Expected.P2.Converted.Begin
-                $Actual.P2.Converted.Middle | 
-                Should -BeExactly $Expected.P2.Converted.Middle
-                $Actual.P2.Converted.End | 
-                Should -BeExactly $Expected.P2.Converted.End
+                $actual.P2.Converted.Begin | 
+                Should -BeExactly $expected.P2.Converted.Begin
+                $actual.P2.Converted.Middle | 
+                Should -BeExactly $expected.P2.Converted.Middle
+                $actual.P2.Converted.End | 
+                Should -BeExactly $expected.P2.Converted.End
             }
         }
         Context 'do not replace value when' {
@@ -447,7 +447,7 @@ Describe 'ConvertTo-MatrixADNamesHC' {
             It '<TestName>' -TestCases $TestCases {
                 Param (
                     $Permissions,
-                    $Expected
+                    $expected
                 )
 
                 $testParams = @{
@@ -457,24 +457,24 @@ Describe 'ConvertTo-MatrixADNamesHC' {
                     BeginReplace  = 'A'
                     MiddleReplace = 'B'
                 }
-                $Actual = ConvertTo-MatrixADNamesHC @testParams
+                $actual = ConvertTo-MatrixADNamesHC @testParams
 
-                $Actual.SamAccountName | 
-                Should -BeExactly $Expected.SamAccountName
+                $actual.SamAccountName | 
+                Should -BeExactly $expected.SamAccountName
 
-                $Actual.P2.Original.Begin | 
-                Should -BeExactly $Expected.P2.Original.Begin
-                $Actual.P2.Original.Middle | 
-                Should -BeExactly $Expected.P2.Original.Middle
-                $Actual.P2.Original.End | 
-                Should -BeExactly $Expected.P2.Original.End
+                $actual.P2.Original.Begin | 
+                Should -BeExactly $expected.P2.Original.Begin
+                $actual.P2.Original.Middle | 
+                Should -BeExactly $expected.P2.Original.Middle
+                $actual.P2.Original.End | 
+                Should -BeExactly $expected.P2.Original.End
 
-                $Actual.P2.Converted.Begin | 
-                Should -BeExactly $Expected.P2.Converted.Begin
-                $Actual.P2.Converted.Middle | 
-                Should -BeExactly $Expected.P2.Converted.Middle
-                $Actual.P2.Converted.End | 
-                Should -BeExactly $Expected.P2.Converted.End
+                $actual.P2.Converted.Begin | 
+                Should -BeExactly $expected.P2.Converted.Begin
+                $actual.P2.Converted.Middle | 
+                Should -BeExactly $expected.P2.Converted.Middle
+                $actual.P2.Converted.End | 
+                Should -BeExactly $expected.P2.Converted.End
             }
         }
     }
@@ -532,7 +532,7 @@ Describe 'ConvertTo-MatrixAclHC' {
             } |
             Should -Throw -PassThru | 
             Select-Object -ExpandProperty Exception |
-            Should -BeLike "*$Expected*"
+            Should -BeLike "*$expected*"
         }
     }
     Context 'an error is not thrown when' {
@@ -610,9 +610,9 @@ Describe 'ConvertTo-MatrixAclHC' {
                 NonHeaderRows = $NonHeaderRows 
                 ADObjects     = $ADObjects
             }
-            $Actual = ConvertTo-MatrixAclHC @testParams
+            $actual = ConvertTo-MatrixAclHC @testParams
 
-            Assert-Equivalent -Actual $Actual -Expected $Expected
+            Assert-Equivalent -Actual $actual -Expected $expected
         }
     }
     Context 'ACL' {
@@ -677,9 +677,9 @@ Describe 'ConvertTo-MatrixAclHC' {
                 NonHeaderRows = $NonHeaderRows 
                 ADObjects     = $ADObjects
             }
-            $Actual = ConvertTo-MatrixAclHC @testParams
+            $actual = ConvertTo-MatrixAclHC @testParams
 
-            Assert-Equivalent -Actual $Actual -Expected $Expected
+            Assert-Equivalent -Actual $actual -Expected $expected
         }
     } 
     Context 'ignore is TRUE and ACL is empty when' {
@@ -804,9 +804,9 @@ Describe 'ConvertTo-MatrixAclHC' {
                 NonHeaderRows = $NonHeaderRows 
                 ADObjects     = $ADObjects
             }
-            $Actual = ConvertTo-MatrixAclHC @testParams
+            $actual = ConvertTo-MatrixAclHC @testParams
 
-            Assert-Equivalent -Actual $Actual -Expected $Expected
+            Assert-Equivalent -Actual $actual -Expected $expected
         }
     }
 }
@@ -817,10 +817,10 @@ Describe 'Format-PermissionsStringsHC' {
                 [PSCustomObject]@{P1 = 1; P2 = 2 }
             )
 
-            $Actual = Format-PermissionsStringsHC -Permissions $Permissions
+            $actual = Format-PermissionsStringsHC -Permissions $Permissions
 
-            $Actual.P1 | Should -BeOfType [String]
-            $Actual.P2 | Should -BeOfType [String]
+            $actual.P1 | Should -BeOfType [String]
+            $actual.P2 | Should -BeOfType [String]
         }
 
         $TestCases = @(
@@ -888,34 +888,34 @@ Describe 'Format-PermissionsStringsHC' {
             It '<TestName>' -TestCases $TestCases {
                 Param (
                     $Permissions,
-                    $Expected
+                    $expected
                 )
 
-                $Actual = Format-PermissionsStringsHC -Permissions $Permissions
+                $actual = Format-PermissionsStringsHC -Permissions $Permissions
 
-                for ($i = 0; $i -lt $Expected.length; $i++) {
-                    $Actual[$i].P1 | Should -BeExactly $Expected[$i].P1
-                    $Actual[$i].P2 | Should -BeExactly $Expected[$i].P2
+                for ($i = 0; $i -lt $expected.length; $i++) {
+                    $actual[$i].P1 | Should -BeExactly $expected[$i].P1
+                    $actual[$i].P2 | Should -BeExactly $expected[$i].P2
                 }
 
-                $Actual.Count | Should -BeExactly $Expected.Count
+                $actual.Count | Should -BeExactly $expected.Count
             }
         }
         Context 'with the arguments passed through the pipeline' {
             It '<TestName>' -TestCases $TestCases {
                 Param (
                     $Permissions,
-                    $Expected
+                    $expected
                 )
 
-                $Actual = $Permissions | Format-PermissionsStringsHC
+                $actual = $Permissions | Format-PermissionsStringsHC
 
-                for ($i = 0; $i -lt $Expected.length; $i++) {
-                    $Actual[$i].P1 | Should -BeExactly $Expected[$i].P1
-                    $Actual[$i].P2 | Should -BeExactly $Expected[$i].P2
+                for ($i = 0; $i -lt $expected.length; $i++) {
+                    $actual[$i].P1 | Should -BeExactly $expected[$i].P1
+                    $actual[$i].P2 | Should -BeExactly $expected[$i].P2
                 }
 
-                $Actual.Count | Should -BeExactly $Expected.Count
+                $actual.Count | Should -BeExactly $expected.Count
             }
         }
     }
@@ -1043,22 +1043,22 @@ Describe 'Format-SettingStringsHC' {
             It '<TestName>' -TestCases $TestCases {
                 Param (
                     $Settings,
-                    $Expected
+                    $expected
                 )
 
-                $Actual = Format-SettingStringsHC -Settings $Settings
-                Assert-Equivalent -Actual $Actual -Expected $Expected
+                $actual = Format-SettingStringsHC -Settings $Settings
+                Assert-Equivalent -Actual $actual -Expected $expected
             }
         }
         Context 'with the arguments passed through the pipeline' {
             It '<TestName>' -TestCases $TestCases {
                 Param (
                     $Settings,
-                    $Expected
+                    $expected
                 )
 
-                $Actual = $Settings | Format-SettingStringsHC
-                Assert-Equivalent -Actual $Actual -Expected $Expected
+                $actual = $Settings | Format-SettingStringsHC
+                Assert-Equivalent -Actual $actual -Expected $expected
             }
         }
     }
@@ -1178,193 +1178,14 @@ Describe 'Get-ADObjectDetailHC' {
         It 'SamAccountName is populated' {
             $testResult.SamAccountName | Should -Be 'unknown'
         }
-        it 'adObject is null' {
+        It 'adObject is null' {
             $testResult.adObject | Should -BeNullOrEmpty
         }
-        it 'adGroupMember is null' {
+        It 'adGroupMember is null' {
             $testResult.adGroupMember | Should -BeNullOrEmpty
         }
     }
-
-    Context 'when the AD Object does not exist then' {
-        It 'ADObject and Member are NULL' {
-            Mock Get-ADObject
-
-            $Expected = [PSCustomObject]@{
-                Name     = 'NotExisting'
-                ADObject = $null
-                Member   = $null
-            }
-
-            $Actual = Get-ADObjectDetailHC -Name NotExisting
-            Assert-Equivalent -Actual $Actual -Expected $Expected
-        }
-    } -Skip
-    Context 'when the AD object exist then' {
-        InModuleScope $moduleName {
-
-            Context 'user' {
-                It 'Member is NULL' {
-                    $testADObject = New-Object Microsoft.ActiveDirectory.Management.ADObject Identity -Property @{
-                        SamAccountName = 'Bob'
-                        ObjectClass    = 'user'
-                    }
-
-                    Mock Get-ADObject {
-                        $testADObject
-                    }
-
-                    $Expected = [PSCustomObject]@{
-                        Name     = $testADObject.SamAccountName
-                        ADObject = $testADObject
-                        Member   = $null
-                    }
-
-                    $Actual = Get-ADObjectDetailHC -Name $testADObject.SamAccountName
-
-                    $Actual.Name | Should -Be $Expected.Name
-                    $Actual.Member | Should -Be $Expected.Member
-                    $Actual.ADObject | Should -Be $Expected.ADObject
-                    # Assert-Equivalent -Actual $Actual -Expected $Expected
-                }
-            }
-            Context 'group' {
-                It "Member is always True for 'Domain users'" {
-                    $testADObject = New-Object Microsoft.ActiveDirectory.Management.ADGroup Identity -Property @{
-                        SamAccountName = 'Domain users'
-                        ObjectClass    = 'group'
-                    }
-
-                    Mock Get-ADObject {
-                        $testADObject
-                    }
-
-                    $Expected = [PSCustomObject]@{
-                        Name     = $testADObject.SamAccountName
-                        ADObject = $testADObject
-                        Member   = $true
-                    }
-
-                    $Actual = Get-ADObjectDetailHC -Name $testADObject.SamAccountName
-                    Assert-Equivalent -Actual $Actual -Expected $Expected
-                }
-                It 'Member is True when there are user objects in the group' {
-                    $testADObject = New-Object Microsoft.ActiveDirectory.Management.ADGroup Identity -Property @{
-                        SamAccountName = 'BEL Managers'
-                        ObjectClass    = 'group'
-                    }
-
-                    Mock Get-ADGroupMember {
-                        New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
-                            SamAccountName = 'Mike'
-                            ObjectClass    = 'user'
-                        }
-                    }
-
-                    Mock Get-ADObject {
-                        $testADObject
-                    }
-
-                    $Expected = [PSCustomObject]@{
-                        Name     = $testADObject.SamAccountName
-                        ADObject = $testADObject
-                        Member   = $true
-                    }
-
-                    $Actual = Get-ADObjectDetailHC -Name $testADObject.SamAccountName
-                    Assert-Equivalent -Actual $Actual -Expected $Expected
-                }
-                It 'Member is True when there are user objects and a place holder account in the group' {
-                    $testADObject = New-Object Microsoft.ActiveDirectory.Management.ADGroup Identity -Property @{
-                        SamAccountName = 'BEL Managers'
-                        ObjectClass    = 'group'
-                    }
-
-                    $testMember = @(
-                        New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
-                            SamAccountName = 'Mike'
-                            ObjectClass    = 'user'
-                        }
-                        New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
-                            SamAccountName = 'PlaceHolder'
-                            ObjectClass    = 'user'
-                        }
-                    )
-
-                    Mock Get-ADGroupMember {
-                        $testMember
-                    }
-
-                    Mock Get-ADObject {
-                        $testADObject
-                    }
-
-                    $Expected = [PSCustomObject]@{
-                        Name     = $testADObject.SamAccountName
-                        ADObject = $testADObject
-                        Member   = $true
-                    }
-
-                    $Actual = Get-ADObjectDetailHC -Name $testADObject.SamAccountName -ExcludeMember $testMember[1].SamAccountName
-                    Assert-Equivalent -Actual $Actual -Expected $Expected
-                }
-                It 'Member is False when there are no user objects in the group' {
-                    $testADObject = New-Object Microsoft.ActiveDirectory.Management.ADGroup Identity -Property @{
-                        SamAccountName = 'BEL Managers'
-                        ObjectClass    = 'group'
-                    }
-
-                    Mock Get-ADGroupMember {
-                        New-Object Microsoft.ActiveDirectory.Management.ADGroup Identity -Property @{
-                            SamAccountName = 'Group 2'
-                            ObjectClass    = 'group'
-                        }
-                    }
-
-                    Mock Get-ADObject {
-                        $testADObject
-                    }
-
-                    $Expected = [PSCustomObject]@{
-                        Name     = $testADObject.SamAccountName
-                        ADObject = $testADObject
-                        Member   = $false
-                    }
-
-                    $Actual = Get-ADObjectDetailHC -Name $testADObject.SamAccountName
-                    Assert-Equivalent -Actual $Actual -Expected $Expected
-                }
-                It 'Member is False when there is only a place holder account in the group' {
-                    $testADObject = New-Object Microsoft.ActiveDirectory.Management.ADGroup Identity -Property @{
-                        SamAccountName = 'BEL Managers'
-                        ObjectClass    = 'group'
-                    }
-                    $testMember = New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
-                        SamAccountName = 'PlaceHolder'
-                        ObjectClass    = 'user'
-                    }
-
-                    Mock Get-ADGroupMember {
-                        $testMember
-                    }
-
-                    Mock Get-ADObject {
-                        $testADObject
-                    }
-
-                    $Expected = [PSCustomObject]@{
-                        Name     = $testADObject.SamAccountName
-                        ADObject = $testADObject
-                        Member   = $false
-                    }
-
-                    $Actual = Get-ADObjectDetailHC -Name $testADObject.SamAccountName -ExcludeMember $testMember.SamAccountName
-                    Assert-Equivalent -Actual $Actual -Expected $Expected
-                }
-            }
-        }
-    } -Skip
-}   -Tag test
+}
 Describe 'Get-DefaultAclHC' {
     Context 'an error is thrown' {
         $TestCases = @(
@@ -1416,12 +1237,12 @@ Describe 'Get-DefaultAclHC' {
         It "<TaskName>" -TestCases $TestCases {
             Param (
                 $DefaultsFile,
-                $Expected
+                $expected
             )
 
             { Get-DefaultAclHC -Sheet $DefaultsFile } |
             Should -Throw -PassThru | Select-Object -ExpandProperty Exception |
-            Should -BeLike "*$Expected*"
+            Should -BeLike "*$expected*"
         }
     }
     Context "combine 'ADObjectName' and 'Permission' in one hashtable" {
@@ -1474,11 +1295,11 @@ Describe 'Get-DefaultAclHC' {
         It "<TaskName>" -TestCases $TestCases {
             Param (
                 $DefaultsFile,
-                $Expected
+                $expected
             )
 
-            $Actual = Get-DefaultAclHC -Sheet $DefaultsFile
-            Assert-Equivalent -Actual $Actual -Expected $Expected
+            $actual = Get-DefaultAclHC -Sheet $DefaultsFile
+            Assert-Equivalent -Actual $actual -Expected $expected
         }
     }
 }
@@ -1547,7 +1368,7 @@ Describe 'Get-ExecutableMatrixHC' {
     }
     Context 'include the matrix when' {
         It 'no FatalError is detected' {
-            $Expected = [PSCustomObject]@{
+            $expected = [PSCustomObject]@{
                 Check  = @()
                 Matrix = $true
             }
@@ -1557,7 +1378,7 @@ Describe 'Get-ExecutableMatrixHC' {
                         Check = @()
                     }
                     Settings    = @(
-                        $Expected
+                        $expected
                     )
                     Permissions = @{
                         Check = @()
@@ -1565,8 +1386,8 @@ Describe 'Get-ExecutableMatrixHC' {
                 }
             )
 
-            $Actual = Get-ExecutableMatrixHC -From $testFile
-            Assert-Equivalent -Actual $Actual -Expected $Expected
+            $actual = Get-ExecutableMatrixHC -From $testFile
+            Assert-Equivalent -Actual $actual -Expected $expected
         }
         It "when one matrix in the same file has a FatalError but the others don't" {
             $testFile = @(
@@ -1594,8 +1415,8 @@ Describe 'Get-ExecutableMatrixHC' {
                 }
             )
 
-            $Actual = Get-ExecutableMatrixHC -From $testFile
-            ($Actual | Measure-Object).Count | Should -BeExactly 2
+            $actual = Get-ExecutableMatrixHC -From $testFile
+            ($actual | Measure-Object).Count | Should -BeExactly 2
         }
         It "when one file has a FatalError but the other files don't" {
             $testFile = @(
@@ -1645,9 +1466,9 @@ Describe 'Get-ExecutableMatrixHC' {
                 }
             )
 
-            $Actual = Get-ExecutableMatrixHC -From $testFile
-            (@($Actual).Where( { $_.Matrix -eq 'Ok' }) | Measure-Object).Count | Should -BeExactly 3
-            (@($Actual).Where( { $_.Matrix -eq 'Ignore' }) | Measure-Object).Count | Should -BeExactly 0
+            $actual = Get-ExecutableMatrixHC -From $testFile
+            (@($actual).Where( { $_.Matrix -eq 'Ok' }) | Measure-Object).Count | Should -BeExactly 3
+            (@($actual).Where( { $_.Matrix -eq 'Ignore' }) | Measure-Object).Count | Should -BeExactly 0
         }
     }
 }
@@ -1939,456 +1760,683 @@ Describe 'Test-AclIsInheritedOnlyHC' {
 }
 Describe 'Test-ExpandedMatrixHC' {
     Context 'a terminating error is thrown when' {
-        It 'the matrix contains an object that is unknown in ADObject' {
-            $ADObjects = @(
-                @{
-                    Name     = 'Group1'
-                    ADObject = @{ObjectClass = 'group' }
-                    Member   = $false
+        It 'a matrix contains an object that is unknown in ADObject' {
+            $testParams = @{
+                Matrix   = @(
+                    [PSCustomObject]@{
+                        ACL = @{'bob' = 'L'; 'lswagger' = 'L' } 
+                    }
+                    [PSCustomObject]@{
+                        ACL = @{'bob' = 'L' } 
+                    }
+                )
+                ADObject = @{
+                    samAccountName = 'bob'
+                    adObject       = @{ObjectClass = 'user' }
+                    adGroupMember  = $null
                 }
-            )
-            $Matrix = @(
-                [PSCustomObject]@{ACL = @{'Unknown1' = 'L'; 'Unknown2' = 'L' } }
-                [PSCustomObject]@{ACL = @{$ADObjects[0].Name = 'L' } }
-            )
+            }
 
-            { Test-ExpandedMatrixHC -Matrix $Matrix -ADObject $ADObjects } | Should -Throw
+            { Test-ExpandedMatrixHC @testParams } | 
+            Should -Throw -ExpectedMessage "*Unknown AD Object 'lswagger'*"
         }
     }
     Context 'Non existing AD Objects' {
         BeforeAll {
-            $Expected = [PSCustomObject]@{
+            $expected = [PSCustomObject]@{
                 Type        = 'FatalError'
                 Name        = 'Unknown AD object'
                 Description = "Every AD object defined in the header row needs to exist before the matrix can be correctly executed."
                 Value       = $null
             } 
         }
-        Context 'a FatalError object is registered when' {
-            It 'a single AD object in the matrix is not found in the active directory' {
-                $ADObjects = @(
-                    @{Name = 'UnknownUser1'; ADObject = $null }
-                    @{Name = 'Bob'         ; ADObject = $true }
-                )
+        Context 'return a FatalError object when' {
+            It 'a SamAccountName in the matrix is not found in AD' {
+                $testParams = @{
+                    Matrix   = @(
+                        [PSCustomObject]@{
+                            ACL = @{'lswagger' = 'L' } 
+                        }
+                        [PSCustomObject]@{
+                            ACL = @{'bob' = 'L' } 
+                        }
+                    )
+                    ADObject = @(
+                        @{
+                            samAccountName = 'lswagger'
+                            adObject       = $null
+                            adGroupMember  = $null
+                        }
+                        @{
+                            samAccountName = 'bob'
+                            adObject       = @{ObjectClass = 'user' }
+                            adGroupMember  = $null
+                        }
+                    )
+                }
 
-                $Expected.Value = $ADObjects[0].Name
+                $expected.Value = 'lswagger'
 
-                $Matrix = [PSCustomObject]@{ACL = @{$ADObjects[0].Name = 'L'; 'Bob' = 'R' } }
-
-                $Actual = Test-ExpandedMatrixHC -Matrix $Matrix -ADObject $ADObjects | Where-Object Name -EQ $Expected.Name
-                Assert-Equivalent -Actual $Actual -Expected $Expected
+                $actual = Test-ExpandedMatrixHC @testParams | 
+                Where-Object Name -EQ $expected.Name
+                Assert-Equivalent -Actual $actual -Expected $expected
             }
-            It 'multiple AD objects in the matrix are not found in the active directory' {
-                $ADObjects = @(
-                    @{Name = 'UnknownUser1'; ADObject = $null }
-                    @{Name = 'UnknownUser2'; ADObject = $null }
-                    @{Name = 'Bob'         ; ADObject = @{ObjectClass = 'user' } }
-                )
+            It 'multiple SamAccountNames in the matrix are not found in AD' {
+                $testParams = @{
+                    Matrix   = @(
+                        [PSCustomObject]@{
+                            ACL = @{'lswagger' = 'L' } 
+                        }
+                        [PSCustomObject]@{
+                            ACL = @{'bob' = 'L' } 
+                        }
+                    )
+                    ADObject = @(
+                        @{
+                            samAccountName = 'lswagger'
+                            adObject       = $null
+                            adGroupMember  = $null
+                        }
+                        @{
+                            samAccountName = 'bob'
+                            adObject       = $null
+                            adGroupMember  = $null
+                        }
+                    )
+                }
 
-                $Expected.Value = $ADObjects[0].Name, $ADObjects[1].Name
+                $expected.Value = 'lswagger', 'bob'
 
-                $Matrix = @(
-                    [PSCustomObject]@{Path = 'Folder1'; ACL = @{$ADObjects[0].Name = 'L'; $ADObjects[1].Name = 'L' } }
-                    [PSCustomObject]@{Path = 'Folder2'; ACL = @{$ADObjects[0].Name = 'W'; $ADObjects[1].Name = 'R' } }
-                    [PSCustomObject]@{Path = 'Folder3'; ACL = @{'Bob' = 'W'             ; $ADObjects[1].Name = 'R' } }
-                )
-
-                $Actual = Test-ExpandedMatrixHC -Matrix $Matrix -ADObject $ADObjects | Where-Object Name -EQ $Expected.Name
-                $Actual.Value = $Actual.Value | ConvertTo-ArrayHC
-                Assert-Equivalent -Actual $Actual -Expected $Expected
+                $actual = Test-ExpandedMatrixHC @testParams | 
+                Where-Object Name -EQ $expected.Name
+                Assert-Equivalent -Actual $actual -Expected $expected
             }
-        }
-        Context 'no output is registered when' {
-            It 'all AD objects exist in the active directory' {
-                $Matrix = [PSCustomObject]@{ACL = @{'Bob' = 'L'; 'Mike' = 'L' } }
+        } 
+        Context 'return no output when' {
+            It 'all AD objects exist in AD' {
+                $testParams = @{
+                    Matrix   = @(
+                        [PSCustomObject]@{
+                            ACL = @{'lswagger' = 'L' } 
+                        }
+                        [PSCustomObject]@{
+                            ACL = @{'bob' = 'L' } 
+                        }
+                    )
+                    ADObject = @(
+                        @{
+                            samAccountName = 'lswagger'
+                            adObject       = @{ObjectClass = 'user' }
+                            adGroupMember  = $null
+                        }
+                        @{
+                            samAccountName = 'bob'
+                            adObject       = @{ObjectClass = 'user' }
+                            adGroupMember  = $null
+                        }
+                    )
+                }
 
-                $ADObjects = @(
-                    @{Name = 'Bob' ; ADObject = $true }
-                    @{Name = 'Mike'; ADObject = $true }
-                )
-
-                Test-ExpandedMatrixHC -Matrix $Matrix -ADObject $ADObjects | Where-Object Name -EQ $Expected.Name |
+                Test-ExpandedMatrixHC @testParams | 
+                Where-Object Name -EQ $expected.Name |
                 Should -BeNullOrEmpty
             }
         }
     }
     Context 'Empty AD groups' {
         BeforeAll {
-            $Expected = [PSCustomObject]@{
+            $expected = [PSCustomObject]@{
                 Type        = 'Information'
                 Name        = 'Empty groups'
                 Description = 'Every active directory security group defined in the header row needs to have at least one user account as a member, excluding the place holder account.'
                 Value       = $null
             }
         }
-        Context 'an Information object is registered when' {
-            It "a matrix contains a single group that doesn't have a user account as member" {
-                $ADObjects = @(
-                    @{
-                        Name     = 'Group1'
-                        ADObject = @{ObjectClass = 'group' }
-                        Member   = $false
-                    }
-                )
+        Context 'return an Information object when' {
+            It 'a matrix contains a group without members' {
+                $testParams = @{
+                    Matrix   = @(
+                        [PSCustomObject]@{
+                            ACL = @{
+                                'lswagger' = 'L'  
+                                'group1'   = 'L' 
+                                'group2'   = 'L' 
+                            } 
+                        }
+                    )
+                    ADObject = @(
+                        @{
+                            samAccountName = 'lswagger'
+                            adObject       = $null
+                            adGroupMember  = $null
+                        }
+                        @{
+                            samAccountName = 'group1'
+                            adObject       = @{ObjectClass = 'group' }
+                            adGroupMember  = @(
+                                @{ 
+                                    ObjectClass    = 'user'
+                                    Name           = 'Jean Luc Picard'
+                                    SamAccountName = 'picard' 
+                                }
+                                @{ 
+                                    ObjectClass    = 'user'
+                                    Name           = 'James T. Kirk'
+                                    SamAccountName = 'kirk' 
+                                }
+                            )
+                        }
+                        @{
+                            samAccountName = 'group2'
+                            adObject       = @{ObjectClass = 'group' }
+                            adGroupMember  = $null
+                        }
+                    )
+                }
 
-                $Expected.Value = @($ADObjects[0].Name)
+                $expected.Value = 'group2'
 
-                $Matrix = [PSCustomObject]@{ACL = @{$ADObjects[0].Name = 'L' } }
+                $actual = Test-ExpandedMatrixHC @testParams | 
+                Where-Object Name -EQ $expected.Name
+                Assert-Equivalent -Actual $actual -Expected $expected
+            } 
+            It 'a matrix contains multiple groups without members' {
+                $testParams = @{
+                    Matrix   = @(
+                        [PSCustomObject]@{
+                            ACL = @{
+                                'lswagger' = 'L'  
+                                'group1'   = 'L' 
+                                'group2'   = 'L' 
+                            } 
+                        }
+                    )
+                    ADObject = @(
+                        @{
+                            samAccountName = 'lswagger'
+                            adObject       = $null
+                            adGroupMember  = $null
+                        }
+                        @{
+                            samAccountName = 'group1'
+                            adObject       = @{ObjectClass = 'group' }
+                            adGroupMember  = $null
+                        }
+                        @{
+                            samAccountName = 'group2'
+                            adObject       = @{ObjectClass = 'group' }
+                            adGroupMember  = $null
+                        }
+                    )
+                }
 
-                $Actual = Test-ExpandedMatrixHC -Matrix $Matrix -ADObject $ADObjects | Where-Object Name -EQ $Expected.Name
+                $expected.Value = 'group1', 'group2'
 
-                Assert-Equivalent -Actual $Actual -Expected $Expected
+                $actual = Test-ExpandedMatrixHC @testParams | 
+                Where-Object Name -EQ $expected.Name
+                Assert-Equivalent -Actual $actual -Expected $expected
             }
-            It 'a matrix contains multiple groups that have no user account as member' {
-                $ADObjects = @(
-                    @{
-                        Name     = 'Group1'
-                        ADObject = @{ObjectClass = 'group' }
-                        Member   = $false
-                    }
-                    @{
-                        Name     = 'Group2'
-                        ADObject = @{ObjectClass = 'group' }
-                        Member   = $false
-                    }
-                )
+            It 'a matrix contains a group with only excluded accounts' {
+                $testParams = @{
+                    Matrix   = @(
+                        [PSCustomObject]@{
+                            ACL = @{
+                                'group1' = 'L' 
+                                'group2' = 'L' 
+                                'group3' = 'L' 
+                            } 
+                        }
+                    )
+                    ADObject = @(
+                        @{
+                            samAccountName = 'group1'
+                            adObject       = @{ObjectClass = 'group' }
+                            adGroupMember  = @(
+                                @{ 
+                                    ObjectClass    = 'user'
+                                    Name           = 'Jean Luc Picard'
+                                    SamAccountName = 'picard' 
+                                }
+                                @{ 
+                                    ObjectClass    = 'user'
+                                    Name           = 'James T. Kirk'
+                                    SamAccountName = 'kirk' 
+                                }
+                            )
+                        }
+                        @{
+                            samAccountName = 'group2'
+                            adObject       = @{ObjectClass = 'group' }
+                            adGroupMember  = @(
+                                @{ 
+                                    ObjectClass    = 'user'
+                                    Name           = 'Jean Luc Picard'
+                                    SamAccountName = 'picard' 
+                                }
+                                @{ 
+                                    ObjectClass    = 'user'
+                                    Name           = 'Bob'
+                                    SamAccountName = 'bob' 
+                                }
+                            )
+                        }
+                        @{
+                            samAccountName = 'group3'
+                            adObject       = @{ObjectClass = 'group' }
+                            adGroupMember  = $null
+                        }
+                    )
+                }
 
-                $Expected.Value = @($ADObjects[0].Name, $ADObjects[1].Name)
+                $expected.Value = 'group1', 'group3'
 
-                $Matrix = [PSCustomObject]@{ACL = @{$ADObjects[0].Name = 'L'; $ADObjects[1].Name = 'L' } }
-
-                $Actual = Test-ExpandedMatrixHC -Matrix $Matrix -ADObject $ADObjects | Where-Object Name -EQ $Expected.Name
-
-                $Actual.Value = $Actual.Value | ConvertTo-ArrayHC
-                Assert-Equivalent -Actual $Actual -Expected $Expected
-            }
-            It 'a matrix contains a mix of groups and users where two groups have no user account as member' {
-                $ADObjects = @(
-                    @{
-                        Name     = 'Group1'
-                        ADObject = @{ObjectClass = 'group' }
-                        Member   = $false
-                    }
-                    @{
-                        Name     = 'Group2'
-                        ADObject = @{ObjectClass = 'group' }
-                        Member   = $false
-                    }
-                    @{
-                        Name     = 'Bob'
-                        ADObject = @{ObjectClass = 'user' }
-                        Member   = $null
-                    }
-                    @{
-                        Name     = 'Group3'
-                        ADObject = @{ObjectClass = 'group' }
-                        Member   = $true
-                    }
-                )
-
-                $Expected.Value = @($ADObjects[0].Name, $ADObjects[1].Name)
-
-                $Matrix = [PSCustomObject]@{ACL = @{$ADObjects[0].Name = 'L'; $ADObjects[1].Name = 'L'; $ADObjects[2].Name = 'L'; $ADObjects[3].Name = 'L' } }
-
-                $Actual = Test-ExpandedMatrixHC -Matrix $Matrix -ADObject $ADObjects | Where-Object Name -EQ $Expected.Name
-
-                $Actual.Value = $Actual.Value | ConvertTo-ArrayHC
-                Assert-Equivalent -Actual $Actual -Expected $Expected
-            }
+                $actual = Test-ExpandedMatrixHC @testParams -ExcludedSamAccountName 'picard', 'kirk' | 
+                Where-Object Name -EQ $expected.Name
+                Assert-Equivalent -Actual $actual -Expected $expected
+            } 
         }
-        Context 'no output is registered when' {
+        Context 'return no output when' {
             It 'a matrix contains only a user account as member' {
-                $ADObjects = @(
-                    @{
-                        Name     = 'Bob'
-                        ADObject = @{ObjectClass = 'user' }
-                        Member   = $null
-                    }
-                )
-                $Matrix = [PSCustomObject]@{ACL = @{$ADObjects[0].Name = 'L' } }
+                $testParams = @{
+                    Matrix   = @(
+                        [PSCustomObject]@{
+                            ACL = @{
+                                'lswagger' = 'L'  
+                            }
+                        }
+                    )
+                    ADObject = @(
+                        @{
+                            samAccountName = 'lswagger'
+                            adObject       = @{ObjectClass = 'user' }
+                            adGroupMember  = $null
+                        }
+                    )
+                }
 
-                Test-ExpandedMatrixHC -Matrix $Matrix -ADObject $ADObjects | Where-Object Name -EQ $Expected.Name |
+                Test-ExpandedMatrixHC @testParams | 
+                Where-Object Name -EQ $expected.Name
                 Should -BeNullOrEmpty
             }
             It 'a matrix contains a group that has a user account as member' {
-                $ADObjects = @(
-                    @{
-                        Name     = 'Group1'
-                        ADObject = @{ObjectClass = 'group' }
-                        Member   = $true
-                    }
-                )
-                $Matrix = [PSCustomObject]@{ACL = @{$ADObjects[0].Name = 'L' } }
+                $testParams = @{
+                    Matrix   = @(
+                        [PSCustomObject]@{
+                            ACL = @{
+                                'group1' = 'L'  
+                            }
+                        }
+                    )
+                    ADObject = @(
+                        @{
+                            samAccountName = 'group1'
+                            adObject       = @{ObjectClass = 'group' }
+                            adGroupMember  = @(
+                                @{ 
+                                    ObjectClass    = 'user'
+                                    Name           = 'Jean Luc Picard'
+                                    SamAccountName = 'picard' 
+                                }
+                            )
+                        }
+                    )
+                }
 
-                Test-ExpandedMatrixHC -Matrix $Matrix -ADObject $ADObjects | Where-Object Name -EQ $Expected.Name |
+                Test-ExpandedMatrixHC @testParams | 
+                Where-Object Name -EQ $expected.Name
                 Should -BeNullOrEmpty
             }
             It "a matrix doesn't contain any of the empty groups defined in ADObjects" {
-                $ADObjects = @(
-                    @{
-                        Name     = 'Group1'
-                        ADObject = @{ObjectClass = 'group' }
-                        Member   = $false
-                    }
-                    @{
-                        Name     = 'Group2'
-                        ADObject = @{ObjectClass = 'group' }
-                        Member   = $false
-                    }
-                    @{
-                        Name     = 'Bob'
-                        ADObject = @{ObjectClass = 'user' }
-                        Member   = $null
-                    }
-                    @{
-                        Name     = 'Group3'
-                        ADObject = @{ObjectClass = 'group' }
-                        Member   = $true
-                    }
-                )
-                $Matrix = [PSCustomObject]@{ACL = @{$ADObjects[2].Name = 'L' } }
+                $testParams = @{
+                    Matrix   = @(
+                        [PSCustomObject]@{
+                            ACL = @{
+                                'lswagger' = 'L'  
+                            }
+                        }
+                    )
+                    ADObject = @(
+                        @{
+                            samAccountName = 'lswagger'
+                            adObject       = @{ObjectClass = 'user' }
+                            adGroupMember  = $null
+                        }
+                        @{
+                            samAccountName = 'group1'
+                            adObject       = @{ObjectClass = 'group' }
+                            adGroupMember  = $null
+                        }
+                    )
+                }
 
-                Test-ExpandedMatrixHC -Matrix $Matrix -ADObject $ADObjects | Where-Object Name -EQ $Expected.Name |
+                Test-ExpandedMatrixHC @testParams | 
+                Where-Object Name -EQ $expected.Name
                 Should -BeNullOrEmpty
             }
             It 'a matrix contains no AD objects at all' {
-                $ADObjects = @(
-                    @{
-                        Name     = 'Group1'
-                        ADObject = @{ObjectClass = 'group' }
-                        Member   = $false
-                    }
-                    @{
-                        Name     = 'Group2'
-                        ADObject = @{ObjectClass = 'group' }
-                        Member   = $false
-                    }
-                    @{
-                        Name     = 'Bob'
-                        ADObject = @{ObjectClass = 'user' }
-                        Member   = $null
-                    }
-                    @{
-                        Name     = 'Group3'
-                        ADObject = @{ObjectClass = 'group' }
-                        Member   = $true
-                    }
-                )
-                $Matrix = [PSCustomObject]@{ACL = @{} }
+                $testParams = @{
+                    Matrix   = @(
+                        [PSCustomObject]@{
+                            ACL = @{ }
+                        }
+                    )
+                    ADObject = @(
+                        @{
+                            samAccountName = 'lswagger'
+                            adObject       = @{ObjectClass = 'user' }
+                            adGroupMember  = $null
+                        }
+                        @{
+                            samAccountName = 'group1'
+                            adObject       = @{ObjectClass = 'group' }
+                            adGroupMember  = $null
+                        }
+                    )
+                }
 
-                Test-ExpandedMatrixHC -Matrix $Matrix -ADObject $ADObjects | Where-Object Name -EQ $Expected.Name |
+                Test-ExpandedMatrixHC @testParams | 
+                Where-Object Name -EQ $expected.Name
                 Should -BeNullOrEmpty
             }
-        }
+        } 
     }
     Context 'Inaccessible folders' {
         BeforeAll {
-            $Expected = [PSCustomObject]@{
+            $expected = [PSCustomObject]@{
                 Type        = 'Warning'
                 Name        = 'No folder access'
                 Description = "Every folder defined in the first column needs to have at least one user account that is able to access it. Group membership is checked to verify if groups granting access to the folder have at least one user account as a member that is not a place holder account."
                 Value       = $null
             }
         }
-        Context 'a Warning object is registered when' {
+        Context 'return a warning object when' {
             It 'a folder ACL contains a group without a user account as member' {
-                $ADObjects = @(
-                    @{Name = 'Group1'; ADObject = @{ObjectClass = 'group' }; Member = $false }
-                )
-
-                $Matrix = [PSCustomObject]@{Path = 'Path'; ACL = @{$ADObjects[0].Name = 'L' } }
-
-                $Expected.Value = $Matrix[0].Path
-
-                $Actual = Test-ExpandedMatrixHC -Matrix $Matrix -ADObject $ADObjects | Where-Object Name -EQ $Expected.Name
-                Assert-Equivalent -Actual $Actual -Expected $Expected
-            }
-            It 'a folder ACL contains multiple groups where no user account is member' {
-                $ADObjects = @(
-                    @{Name = 'Group1'; ADObject = @{ObjectClass = 'group' }; Member = $false }
-                    @{Name = 'Group2'; ADObject = @{ObjectClass = 'group' }; Member = $false }
-                )
-
-                $Matrix = [PSCustomObject]@{Path = 'Path'; ACL = @{$ADObjects[0].Name = 'L'; $ADObjects[1].Name = 'L' } }
-
-                $Expected.Value = $Matrix[0].Path
-
-                $Actual = Test-ExpandedMatrixHC -Matrix $Matrix -ADObject $ADObjects | Where-Object Name -EQ $Expected.Name
-                $Actual.Value = $Actual.Value | ConvertTo-ArrayHC
-                Assert-Equivalent -Actual $Actual -Expected $Expected
-            }
-        }
-        Context 'no output is registered when' {
-            It 'a folder ACL contains a group with a user account as member' {
-                $ADObjects = @(
-                    @{Name = 'Group1'; ADObject = @{ObjectClass = 'group' }; Member = $true }
-                )
-
-                $Matrix = [PSCustomObject]@{Path = 'Path'; ACL = @{$ADObjects[0].Name = 'L' } }
-
-                Test-ExpandedMatrixHC -Matrix $Matrix -ADObject $ADObjects | Where-Object Name -EQ $Expected.Name |
-                Should -BeNullOrEmpty
-            }
-            It 'a folder ACL contains a user account' {
-                $ADObjects = @(
-                    @{Name = 'Bob'; ADObject = @{ObjectClass = 'user' }; Member = $null }
-                )
-
-                $Matrix = [PSCustomObject]@{Path = 'Path'; ACL = @{$ADObjects[0].Name = 'L' } }
-
-                Test-ExpandedMatrixHC -Matrix $Matrix -ADObject $ADObjects | Where-Object Name -EQ $Expected.Name |
-                Should -BeNullOrEmpty
-            }
-            It 'a folder ACL contains a mix of groups where one group has a user account as member' {
-                $ADObjects = @(
-                    @{Name = 'Group1'; ADObject = @{ObjectClass = 'group' }; Member = $false }
-                    @{Name = 'Group2'; ADObject = @{ObjectClass = 'group' }; Member = $false }
-                    @{Name = 'Group3'; ADObject = @{ObjectClass = 'group' }; Member = $true }
-                )
-
-                $Matrix = [PSCustomObject]@{Path = 'Path'; ACL = @{$ADObjects[0].Name = 'L'; $ADObjects[1].Name = 'L'; $ADObjects[2].Name = 'L' } }
-
-                Test-ExpandedMatrixHC -Matrix $Matrix -ADObject $ADObjects | Where-Object Name -EQ $Expected.Name |
-                Should -BeNullOrEmpty
-            }
-            It 'a folder ACL contains a mix of empty groups with one user account' {
-                $ADObjects = @(
-                    @{Name = 'Group1'; ADObject = @{ObjectClass = 'group' }; Member = $false }
-                    @{Name = 'Group2'; ADObject = @{ObjectClass = 'group' }; Member = $false }
-                    @{Name = 'Bob'   ; ADObject = @{ObjectClass = 'user' }; Member = $null }
-                    @{Name = 'Group3'; ADObject = @{ObjectClass = 'group' }; Member = $false }
-                )
-
-                $Matrix = [PSCustomObject]@{Path = 'Path'; ACL = @{$ADObjects[0].Name = 'L'; $ADObjects[1].Name = 'L';
-                        $ADObjects[2].Name = 'L'; $ADObjects[3].Name = 'L'
-                    }
+                $testParams = @{
+                    Matrix   = @(
+                        [PSCustomObject]@{
+                            Path = 'folder'
+                            ACL  = @{'group1' = 'L' } 
+                        }
+                    )
+                    ADObject = @(
+                        @{
+                            samAccountName = 'group1'
+                            adObject       = @{ObjectClass = 'group' }
+                            adGroupMember  = $null
+                        }
+                    )
                 }
 
-                Test-ExpandedMatrixHC -Matrix $Matrix -ADObject $ADObjects | Where-Object Name -EQ $Expected.Name |
+                $expected.Value = 'folder'
+
+                $actual = Test-ExpandedMatrixHC @testParams | 
+                Where-Object Name -EQ $expected.Name
+                Assert-Equivalent -Actual $actual -Expected $expected
+            } 
+            It 'a folder ACL contains multiple groups where no user account is member' {
+                $testParams = @{
+                    Matrix   = @(
+                        [PSCustomObject]@{
+                            Path = 'folder'
+                            ACL  = @{
+                                'group1' = 'L' 
+                                'group2' = 'L' 
+                            } 
+                        }
+                    )
+                    ADObject = @(
+                        @{
+                            samAccountName = 'group1'
+                            adObject       = @{ObjectClass = 'group' }
+                            adGroupMember  = $null
+                        }
+                        @{
+                            samAccountName = 'group2'
+                            adObject       = @{ObjectClass = 'group' }
+                            adGroupMember  = $null
+                        }
+                    )
+                }
+
+                $expected.Value = 'folder'
+
+                $actual = Test-ExpandedMatrixHC @testParams | 
+                Where-Object Name -EQ $expected.Name
+                Assert-Equivalent -Actual $actual -Expected $expected
+            }
+        }
+        Context 'return no output when' {
+            It 'a folder ACL contains a group with a user account as member' {
+                $testParams = @{
+                    Matrix   = @(
+                        [PSCustomObject]@{
+                            Path = 'folder'
+                            ACL  = @{
+                                'group1' = 'L' 
+                                'group2' = 'L' 
+                            } 
+                        }
+                    )
+                    ADObject = @(
+                        @{
+                            samAccountName = 'group1'
+                            adObject       = @{ObjectClass = 'group' }
+                            adGroupMember  = $null
+                        }
+                        @{
+                            samAccountName = 'group2'
+                            adObject       = @{ObjectClass = 'group' }
+                            adGroupMember  = @(
+                                @{ 
+                                    ObjectClass    = 'user'
+                                    Name           = 'Jean Luc Picard'
+                                    SamAccountName = 'picard' 
+                                }
+                            )
+                        }
+                    )
+                }
+
+                Test-ExpandedMatrixHC @testParams | 
+                Where-Object Name -EQ $expected.Name |
+                Should -BeNullOrEmpty
+            } 
+            It 'a folder ACL contains a user account' {
+                $testParams = @{
+                    Matrix   = @(
+                        [PSCustomObject]@{
+                            Path = 'folder'
+                            ACL  = @{
+                                'group1'   = 'L' 
+                                'lswagger' = 'L' 
+                            } 
+                        }
+                    )
+                    ADObject = @(
+                        @{
+                            samAccountName = 'group1'
+                            adObject       = @{ObjectClass = 'group' }
+                            adGroupMember  = $null
+                        }
+                        @{
+                            samAccountName = 'lswagger'
+                            adObject       = @{ObjectClass = 'user' }
+                            adGroupMember  = $null
+                        }
+                    )
+                }
+
+                Test-ExpandedMatrixHC @testParams | 
+                Where-Object Name -EQ $expected.Name |
                 Should -BeNullOrEmpty
             }
             It 'a folder ACL is empty' {
-                $ADObjects = @(
-                    @{Name = 'Group1'; ADObject = @{ObjectClass = 'group' }; Member = $true }
-                )
+                $testParams = @{
+                    Matrix   = @(
+                        [PSCustomObject]@{
+                            Path = 'folder'
+                            ACL  = @{} 
+                        }
+                    )
+                    ADObject = @(
+                        @{
+                            samAccountName = 'group1'
+                            adObject       = @{ObjectClass = 'group' }
+                            adGroupMember  = $null
+                        }
+                        @{
+                            samAccountName = 'lswagger'
+                            adObject       = @{ObjectClass = 'user' }
+                            adGroupMember  = $null
+                        }
+                    )
+                }
 
-                $Matrix = [PSCustomObject]@{Path = 'Path'; ACL = @{} }
-
-                Test-ExpandedMatrixHC -Matrix $Matrix -ADObject $ADObjects | Where-Object Name -EQ $Expected.Name |
+                Test-ExpandedMatrixHC @testParams | 
+                Where-Object Name -EQ $expected.Name |
                 Should -BeNullOrEmpty
-            }
+            } 
         }
     }
     Context 'Duplicate AD objects between matrix and default' {
         BeforeAll {
-            $Expected = [PSCustomObject]@{
+            $expected = [PSCustomObject]@{
                 Type        = 'Information'
                 Name        = 'Conflicting AD Objects'
                 Description = "AD Objects defined in the matrix are duplicate with the ones defined in the default permissions. In such cases the AD objects in the matrix win over those in the default permissions. This to ensure a folder can be made completely private to those defined in the matrix. This can be desired for departments like 'Legal' or 'HR' where data might contain sensitive information that should not be visible to IT admins defined in the default permissions."
                 Value       = $null
             }
         }
-        Context 'an Information object is registered when' {
+        Context 'return an information object when' {
             It 'a duplicate is found' {
-                $ADObjects = @(
-                    @{Name = 'Group1'; ADObject = @{ObjectClass = 'group' } }
-                    @{Name = 'Group2'; ADObject = @{ObjectClass = 'group' } }
-                )
-
-                $Matrix = @(
-                    [PSCustomObject]@{Path = 'Path'; ACL = @{$ADObjects[0].Name = 'L'; $ADObjects[1].Name = 'L' } }
-                )
-
-                $Expected.Value = $ADObjects[0].Name
-
                 $testParams = @{
-                    Matrix     = $Matrix
-                    ADObject   = $ADObjects
-                    DefaultAcl = @{$ADObjects[0].Name = 'L' }
+                    Matrix     = @(
+                        [PSCustomObject]@{
+                            Path = 'folder'
+                            ACL  = @{
+                                'group1'   = 'L' 
+                                'lswagger' = 'L' 
+                            } 
+                        }
+                    )
+                    ADObject   = @(
+                        @{
+                            samAccountName = 'group1'
+                            adObject       = @{ObjectClass = 'group' }
+                            adGroupMember  = $null
+                        }
+                        @{
+                            samAccountName = 'lswagger'
+                            adObject       = @{ObjectClass = 'user' }
+                            adGroupMember  = $null
+                        }
+                    )
+                    DefaultAcl = @{'group1' = 'R' }
                 }
+                
+                $expected.Value = 'group1'
 
-                $Actual = Test-ExpandedMatrixHC @testParams | Where-Object Name -EQ $Expected.Name
-                Assert-Equivalent -Actual $Actual -Expected $Expected
+                $actual = Test-ExpandedMatrixHC @testParams | 
+                Where-Object Name -EQ $expected.Name 
+                Assert-Equivalent -Actual $actual -Expected $expected
             }
             It 'multiple duplicates are found' {
-                $ADObjects = @(
-                    @{Name = 'Group1'; ADObject = @{ObjectClass = 'group' } }
-                    @{Name = 'Group2'; ADObject = @{ObjectClass = 'group' } }
-                )
-
-                $Matrix = @(
-                    [PSCustomObject]@{Path = 'Path'; ACL = @{$ADObjects[0].Name = 'L'; $ADObjects[1].Name = 'L' } }
-                )
-
-                $Expected.Value = @($ADObjects[0].Name, $ADObjects[1].Name)
-
                 $testParams = @{
-                    Matrix     = $Matrix
-                    ADObject   = $ADObjects
-                    DefaultAcl = @{$ADObjects[0].Name = 'L'; $ADObjects[1].Name = 'L' }
+                    Matrix     = @(
+                        [PSCustomObject]@{
+                            Path = 'folder'
+                            ACL  = @{
+                                'group1'   = 'L' 
+                                'lswagger' = 'L' 
+                            } 
+                        }
+                    )
+                    ADObject   = @(
+                        @{
+                            samAccountName = 'group1'
+                            adObject       = @{ObjectClass = 'group' }
+                            adGroupMember  = $null
+                        }
+                        @{
+                            samAccountName = 'lswagger'
+                            adObject       = @{ObjectClass = 'user' }
+                            adGroupMember  = $null
+                        }
+                    )
+                    DefaultAcl = @{'group1' = 'R' ; 'lswagger' = 'R' }
                 }
+                
+                $expected.Value = 'group1', 'lswagger'
 
-                $Actual = Test-ExpandedMatrixHC @testParams | Where-Object Name -EQ $Expected.Name
-                $Actual.Value = $Actual.Value | ConvertTo-ArrayHC
-                Assert-Equivalent -Actual $Actual -Expected $Expected
+                $actual = Test-ExpandedMatrixHC @testParams | 
+                Where-Object Name -EQ $expected.Name 
+                Assert-Equivalent -Actual $actual -Expected $expected
             }
         }
-        Context 'no output is registered when' {
+        Context 'return no output when' {
             It 'there is no match between the matrix and the default ACL' {
-                $ADObjects = @(
-                    @{Name = 'Group1'; ADObject = @{ObjectClass = 'group' } }
-                    @{Name = 'Group2'; ADObject = @{ObjectClass = 'group' } }
-                )
-
-                $Matrix = @(
-                    [PSCustomObject]@{Path = 'Path'; ACL = @{$ADObjects[0].Name = 'L'; $ADObjects[1].Name = 'L' } }
-                )
-
                 $testParams = @{
-                    Matrix     = $Matrix
-                    ADObject   = $ADObjects
-                    DefaultAcl = @{'Bob' = 'L'; 'Mike' = 'L' }
+                    Matrix     = @(
+                        [PSCustomObject]@{
+                            Path = 'folder'
+                            ACL  = @{
+                                'group1'   = 'L' 
+                                'lswagger' = 'L' 
+                            } 
+                        }
+                    )
+                    ADObject   = @(
+                        @{
+                            samAccountName = 'group1'
+                            adObject       = @{ObjectClass = 'group' }
+                            adGroupMember  = $null
+                        }
+                        @{
+                            samAccountName = 'lswagger'
+                            adObject       = @{ObjectClass = 'user' }
+                            adGroupMember  = $null
+                        }
+                    )
+                    DefaultAcl = @{'a' = 'R' ; 'b' = 'R' }
                 }
-                Test-ExpandedMatrixHC @testParams | Where-Object Name -EQ $Expected.Name |
+                
+                Test-ExpandedMatrixHC @testParams | 
+                Where-Object Name -EQ $expected.Name |
                 Should -BeNullOrEmpty
             }
             It 'the default ACL is empty' {
-                $ADObjects = @(
-                    @{Name = 'Group1'; ADObject = @{ObjectClass = 'group' } }
-                    @{Name = 'Group2'; ADObject = @{ObjectClass = 'group' } }
-                )
-
-                $Matrix = @(
-                    [PSCustomObject]@{Path = 'Path'; ACL = @{$ADObjects[0].Name = 'L'; $ADObjects[1].Name = 'L' } }
-                )
-
                 $testParams = @{
-                    Matrix     = $Matrix
-                    ADObject   = $ADObjects
+                    Matrix     = @(
+                        [PSCustomObject]@{
+                            Path = 'folder'
+                            ACL  = @{
+                                'group1'   = 'L' 
+                                'lswagger' = 'L' 
+                            } 
+                        }
+                    )
+                    ADObject   = @(
+                        @{
+                            samAccountName = 'group1'
+                            adObject       = @{ObjectClass = 'group' }
+                            adGroupMember  = $null
+                        }
+                        @{
+                            samAccountName = 'lswagger'
+                            adObject       = @{ObjectClass = 'user' }
+                            adGroupMember  = $null
+                        }
+                    )
                     DefaultAcl = @{}
                 }
-                Test-ExpandedMatrixHC @testParams | Where-Object Name -EQ $Expected.Name |
-                Should -BeNullOrEmpty
-
-                $testParams = @{
-                    Matrix     = $Matrix
-                    ADObject   = $ADObjects
-                    DefaultAcl = $null
-                }
-                Test-ExpandedMatrixHC @testParams | Where-Object Name -EQ $Expected.Name |
-                Should -BeNullOrEmpty
-
-                $testParams = @{
-                    Matrix   = $Matrix
-                    ADObject = $ADObjects
-                    #DefaultAcl = @{}
-                }
-                Test-ExpandedMatrixHC @testParams | Where-Object Name -EQ $Expected.Name |
+                
+                Test-ExpandedMatrixHC @testParams | 
+                Where-Object Name -EQ $expected.Name |
                 Should -BeNullOrEmpty
             }
         }
     }
-}
+}  -Tag test
 Describe 'Test-MatrixPermissionsHC' {
     Context 'Deepest folder has only List permissions or none at all' {
         Context 'no Warning object is created when' {
@@ -2401,7 +2449,7 @@ Describe 'Test-MatrixPermissionsHC' {
                     [PSCustomObject]@{P1 = 'Vegetables'         ; P2 = 'R'   ; P3 = 'W' }
                 )
 
-                $Actual = Test-MatrixPermissionsHC -Permissions $Permissions | Where-Object Name -EQ 'Matrix design flaw' |
+                $actual = Test-MatrixPermissionsHC -Permissions $Permissions | Where-Object Name -EQ 'Matrix design flaw' |
                 Should -BeNullOrEmpty
             }
             It 'the parent folder has no permissions and the the deepest folder has read/write permissions' {
@@ -2413,7 +2461,7 @@ Describe 'Test-MatrixPermissionsHC' {
                     [PSCustomObject]@{P1 = 'Vegetables'         ; P2 = 'R'   ; P3 = 'W' }
                 )
 
-                $Actual = Test-MatrixPermissionsHC -Permissions $Permissions | Where-Object Name -EQ 'Matrix design flaw' |
+                $actual = Test-MatrixPermissionsHC -Permissions $Permissions | Where-Object Name -EQ 'Matrix design flaw' |
                 Should -BeNullOrEmpty
             }
             It "the deepest folder has permission 'i' and is ignored" {
@@ -2425,7 +2473,7 @@ Describe 'Test-MatrixPermissionsHC' {
                     [PSCustomObject]@{P1 = 'Vegetables'         ; P2 = 'i'   ; P3 = 'L' }
                 )
 
-                $Actual = Test-MatrixPermissionsHC -Permissions $Permissions | Where-Object Name -EQ 'Matrix design flaw' |
+                $actual = Test-MatrixPermissionsHC -Permissions $Permissions | Where-Object Name -EQ 'Matrix design flaw' |
                 Should -BeNullOrEmpty
             }
         }
@@ -2519,15 +2567,15 @@ Describe 'Test-MatrixPermissionsHC' {
             It '<TestName>' -TestCases $TestCases {
                 Param (
                     $Permissions,
-                    $Expected
+                    $expected
                 )
 
-                $Actual = Test-MatrixPermissionsHC -Permissions $Permissions | Where-Object Name -EQ $Expected.Name
+                $actual = Test-MatrixPermissionsHC -Permissions $Permissions | Where-Object Name -EQ $expected.Name
 
-                $Actual.Type | Should -Be $Expected.Type
-                $Actual.Description | Should -Be $Expected.Description
-                $Actual.Name | Should -Be $Expected.Name
-                $Actual.Value | Should -Be $Expected.Value
+                $actual.Type | Should -Be $expected.Type
+                $actual.Description | Should -Be $expected.Description
+                $actual.Name | Should -Be $expected.Name
+                $actual.Value | Should -Be $expected.Value
             }
         }
     }
@@ -2666,15 +2714,15 @@ Describe 'Test-MatrixPermissionsHC' {
         It '<TestName>' -TestCases $TestCases {
             Param (
                 $Permissions,
-                $Expected
+                $expected
             )
 
-            $Actual = Test-MatrixPermissionsHC -Permissions $Permissions | Where-Object Name -EQ $Expected.Name
+            $actual = Test-MatrixPermissionsHC -Permissions $Permissions | Where-Object Name -EQ $expected.Name
 
-            $Actual.Type | Should -Be $Expected.Type
-            $Actual.Description | Should -Be $Expected.Description
-            $Actual.Name | Should -Be $Expected.Name
-            $Actual.Value | Should -Be $Expected.Value
+            $actual.Type | Should -Be $expected.Type
+            $actual.Description | Should -Be $expected.Description
+            $actual.Name | Should -Be $expected.Name
+            $actual.Value | Should -Be $expected.Value
         }
     }
 }
@@ -2713,12 +2761,12 @@ Describe 'Test-AdObjectsHC' {
             }
         )
         It '<TestName>' -TestCases $TestCases {
-            $Actual = Test-AdObjectsHC -ADObjects $ADObjects
+            $actual = Test-AdObjectsHC -ADObjects $ADObjects
 
-            $Actual.Type | Should -Be $Expected.Type
-            $Actual.Description | Should -Be $Expected.Description
-            $Actual.Name | Should -Be $Expected.Name
-            $Actual.Value | Should -Be $Expected.Value
+            $actual.Type | Should -Be $expected.Type
+            $actual.Description | Should -Be $expected.Description
+            $actual.Name | Should -Be $expected.Name
+            $actual.Value | Should -Be $expected.Value
         }
     }
     It 'no output is generated when everything is correct' {
@@ -2730,8 +2778,8 @@ Describe 'Test-AdObjectsHC' {
             P6 = @{SamAccountName = 'e' }
         }
 
-        $Actual = Test-AdObjectsHC -ADObjects $ADObjects
-        $Actual | Should -BeNullOrEmpty
+        $actual = Test-AdObjectsHC -ADObjects $ADObjects
+        $actual | Should -BeNullOrEmpty
     }
 }
 Describe 'Test-MatrixSettingHC' {
@@ -2870,15 +2918,15 @@ Describe 'Test-MatrixSettingHC' {
         It '<TestName>' -TestCases $TestCases {
             Param (
                 $Setting,
-                $Expected
+                $expected
             )
 
-            $Actual = Test-MatrixSettingHC -Setting $Setting | Where-Object Name -EQ $Expected.Name
+            $actual = Test-MatrixSettingHC -Setting $Setting | Where-Object Name -EQ $expected.Name
 
-            $Actual.Type | Should -Be $Expected.Type
-            $Actual.Description | Should -Be $Expected.Description
-            $Actual.Name | Should -Be $Expected.Name
-            $Actual.Value | Should -Be $Expected.Value
+            $actual.Type | Should -Be $expected.Type
+            $actual.Description | Should -Be $expected.Description
+            $actual.Name | Should -Be $expected.Name
+            $actual.Value | Should -Be $expected.Value
         }
     }
 }
@@ -2911,10 +2959,10 @@ Describe 'Get-JobErrorHC' {
             $job = Invoke-Command  @testInvokeParams
             Wait-Job -Job $job
 
-            $Actual = Get-JobErrorHC -Job $job
+            $actual = Get-JobErrorHC -Job $job
 
-            $Actual.Type | Should -Be 'FatalError'
-            $Actual.Name | Should -Be 'Connection error'
+            $actual.Type | Should -Be 'FatalError'
+            $actual.Name | Should -Be 'Connection error'
         }
         It 'a terminating error occurred in the job' {
             $testInvokeParams = @{
@@ -2926,10 +2974,10 @@ Describe 'Get-JobErrorHC' {
             $job = Invoke-Command  @testInvokeParams
             Wait-Job -Job $job
 
-            $Actual = Get-JobErrorHC -Job $job
+            $actual = Get-JobErrorHC -Job $job
 
-            $Actual.Type | Should -Be 'FatalError'
-            $Actual.Name | Should -Be 'Terminating error'
+            $actual.Type | Should -Be 'FatalError'
+            $actual.Name | Should -Be 'Terminating error'
         }
         It 'a non terminating error in the job' {
             $testInvokeParams = @{
@@ -2941,10 +2989,10 @@ Describe 'Get-JobErrorHC' {
             $job = Invoke-Command  @testInvokeParams
             Wait-Job -Job $job
 
-            $Actual = Get-JobErrorHC -Job $job
+            $actual = Get-JobErrorHC -Job $job
 
-            $Actual.Type | Should -Be 'FatalError'
-            $Actual.Name | Should -Be 'Non terminating error'
+            $actual.Type | Should -Be 'FatalError'
+            $actual.Name | Should -Be 'Non terminating error'
         }
     }
 }
