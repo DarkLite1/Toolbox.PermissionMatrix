@@ -464,7 +464,16 @@ Function Get-ADObjectDetailHC {
                 $adObject = Get-ADObject -Filter 'SamAccountName -eq $SamAccountName'
 
                 if ($adObject.ObjectClass -eq 'group') {
-                    $adGroupMember = Get-ADGroupMember -Identity $adObject -Recursive
+                    $adGroupMember = if ($adObject.Name -ne 'Domain Users') {
+                        Get-ADGroupMember -Identity $adObject -Recursive
+                    }
+                    else {
+                        [PSCustomObject]@{
+                            objectClass    = 'user'
+                            Name           = 'All users'
+                            SamAccountName = 'All users'
+                        }
+                    }
                 }
 
                 [PSCustomObject]@{

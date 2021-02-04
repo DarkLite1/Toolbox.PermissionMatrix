@@ -1185,7 +1185,7 @@ Describe 'Get-ADObjectDetailHC' {
             $testResult.adGroupMember | Should -BeNullOrEmpty
         }
     }
-}
+} -Tag 'Get-ADObjectDetailHC'
 Describe 'Get-DefaultAclHC' {
     Context 'an error is thrown' {
         $TestCases = @(
