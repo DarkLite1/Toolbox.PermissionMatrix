@@ -494,8 +494,8 @@ Function Get-ADObjectDetailHC {
     }
 
     End {
-        $jobs | Wait-Job | Receive-Job | 
-        Select-Object -Property 'samAccountName', 'adObject', 'adGroupMember'
+        $result = $jobs | Wait-Job | Receive-Job
+        $result | Select-Object -Property 'samAccountName', 'adObject', 'adGroupMember'
 
         $jobs | Remove-Job -Force -EA ignore
         Write-Verbose 'Add AD object details retrieved'
