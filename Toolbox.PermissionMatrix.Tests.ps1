@@ -1475,14 +1475,14 @@ Describe 'Get-ExecutableMatrixHC' {
 Describe 'Test-AclEqualHC' {
     BeforeAll {
         $A = New-Object System.Security.AccessControl.FileSystemAccessRule(
-            'GROUPHC\gijbelsb',
+            "$env:USERDOMAIN\gijbelsb",
             [System.Security.AccessControl.FileSystemRights]::Modify,
             [System.Security.AccessControl.InheritanceFlags]::ContainerInherit,
             [System.Security.AccessControl.PropagationFlags]::None,
             [System.Security.AccessControl.AccessControlType]::Allow
         )
         $B = New-Object System.Security.AccessControl.FileSystemAccessRule(
-            'GROUPHC\dverhuls',
+            "$env:USERDOMAIN\dverhuls",
             [System.Security.AccessControl.FileSystemRights]::FullControl,
             [System.Security.AccessControl.InheritanceFlags]::ContainerInherit,
             [System.Security.AccessControl.PropagationFlags]::None,
@@ -1571,7 +1571,7 @@ Describe 'Test-AclEqualHC' {
                     $A
                     $B
                     New-Object System.Security.AccessControl.FileSystemAccessRule(
-                        "GROUPHC\$env:USERNAME",
+                        "$env:USERDOMAIN\$env:USERNAME",
                         [System.Security.AccessControl.FileSystemRights]::Modify,
                         [System.Security.AccessControl.InheritanceFlags]"ContainerInherit,ObjectInherit",
                         [System.Security.AccessControl.PropagationFlags]::None,
@@ -1583,7 +1583,7 @@ Describe 'Test-AclEqualHC' {
                 @(
                     $A
                     New-Object System.Security.AccessControl.FileSystemAccessRule(
-                        "GROUPHC\$env:USERNAME",
+                        "$env:USERDOMAIN\$env:USERNAME",
                         [System.Security.AccessControl.FileSystemRights]::Modify,
                         [System.Security.AccessControl.InheritanceFlags]"ContainerInherit",
                         [System.Security.AccessControl.PropagationFlags]::None,
@@ -1601,7 +1601,7 @@ Describe 'Test-AclEqualHC' {
                     $A
                     $B
                     New-Object System.Security.AccessControl.FileSystemAccessRule(
-                        "GROUPHC\$env:USERNAME",
+                        "$env:USERDOMAIN\$env:USERNAME",
                         [System.Security.AccessControl.FileSystemRights]::Read,
                         [System.Security.AccessControl.InheritanceFlags]::ContainerInherit,
                         [System.Security.AccessControl.PropagationFlags]::None,
@@ -1613,7 +1613,7 @@ Describe 'Test-AclEqualHC' {
                 @(
                     $A
                     New-Object System.Security.AccessControl.FileSystemAccessRule(
-                        "GROUPHC\$env:USERNAME",
+                        "$env:USERDOMAIN\$env:USERNAME",
                         [System.Security.AccessControl.FileSystemRights]::ReadAndExecute,
                         [System.Security.AccessControl.InheritanceFlags]::ContainerInherit,
                         [System.Security.AccessControl.PropagationFlags]::None,
@@ -1631,7 +1631,7 @@ Describe 'Test-AclEqualHC' {
                     $A
                     $B
                     New-Object System.Security.AccessControl.FileSystemAccessRule(
-                        "GROUPHC\$env:USERNAME",
+                        "$env:USERDOMAIN\$env:USERNAME",
                         [System.Security.AccessControl.FileSystemRights]::ReadAndExecute,
                         [System.Security.AccessControl.InheritanceFlags]::ContainerInherit,
                         [System.Security.AccessControl.PropagationFlags]::None,
@@ -1643,7 +1643,7 @@ Describe 'Test-AclEqualHC' {
                 @(
                     $A
                     New-Object System.Security.AccessControl.FileSystemAccessRule(
-                        "GROUPHC\$env:USERNAME",
+                        "$env:USERDOMAIN\$env:USERNAME",
                         [System.Security.AccessControl.FileSystemRights]::ReadAndExecute,
                         [System.Security.AccessControl.InheritanceFlags]::ContainerInherit,
                         [System.Security.AccessControl.PropagationFlags]::InheritOnly,
@@ -1661,7 +1661,7 @@ Describe 'Test-AclEqualHC' {
                     $A
                     $B
                     New-Object System.Security.AccessControl.FileSystemAccessRule(
-                        "GROUPHC\$env:USERNAME",
+                        "$env:USERDOMAIN\$env:USERNAME",
                         [System.Security.AccessControl.FileSystemRights]::ReadAndExecute,
                         [System.Security.AccessControl.InheritanceFlags]::ContainerInherit,
                         [System.Security.AccessControl.PropagationFlags]::None,
@@ -1673,7 +1673,7 @@ Describe 'Test-AclEqualHC' {
                 @(
                     $A
                     New-Object System.Security.AccessControl.FileSystemAccessRule(
-                        "GROUPHC\$env:USERNAME",
+                        "$env:USERDOMAIN\$env:USERNAME",
                         [System.Security.AccessControl.FileSystemRights]::ReadAndExecute,
                         [System.Security.AccessControl.InheritanceFlags]::ContainerInherit,
                         [System.Security.AccessControl.PropagationFlags]::None,
@@ -1687,7 +1687,7 @@ Describe 'Test-AclEqualHC' {
             }
         }
     }
-}
+} -tag 'Test-AclEqualHC'
 Describe 'Test-AclIsInheritedOnlyHC' {
     BeforeAll {
         $BuiltinAdmin = New-Object System.Security.AccessControl.FileSystemAccessRule(
@@ -1705,14 +1705,14 @@ Describe 'Test-AclIsInheritedOnlyHC' {
             [System.Security.AccessControl.AccessControlType]::Allow
         )
         $A = New-Object System.Security.AccessControl.FileSystemAccessRule(
-            'GROUPHC\gijbelsb',
+            "$env:USERDOMAIN\gijbelsb",
             [System.Security.AccessControl.FileSystemRights]::Modify,
             [System.Security.AccessControl.InheritanceFlags]::ContainerInherit,
             [System.Security.AccessControl.PropagationFlags]::None,
             [System.Security.AccessControl.AccessControlType]::Allow
         )
         $B = New-Object System.Security.AccessControl.FileSystemAccessRule(
-            'GROUPHC\dverhuls',
+            "$env:USERDOMAIN\dverhuls",
             [System.Security.AccessControl.FileSystemRights]::FullControl,
             [System.Security.AccessControl.InheritanceFlags]::ContainerInherit,
             [System.Security.AccessControl.PropagationFlags]::None,
