@@ -406,24 +406,25 @@ Function Format-SettingStringsHC {
     }
 }
 
+
 Function Get-ADObjectDetailHC {
     <#
     .SYNOPSIS
         Retrieve details about an AD object.
-
+  
     .DESCRIPTION
         Retrieve details about an AD object. If the SamAccountName is not found 
         the property 'adObject' is not populated. If it is a group, the group
         members are also retrieved and stored in the property 'adGroupMember'.
-
+  
     .PARAMETER SamAccountName
         SamAccountName of the active directory object.
-
+  
     .PARAMETER MaxThreads
         Quantity of jobs allowed to run at the same time when querying the 
         active director for details.
     #>
-
+  
     [CmdletBinding()]
     [OutputType([PSCustomObject[]])]
     Param (
@@ -432,7 +433,7 @@ Function Get-ADObjectDetailHC {
         [String[]]$SamAccountName,
         [Int]$MaxThreads = 3
     )
-
+  
     Begin {
         $uniqueSamAccountNames = $SamAccountName | 
         Select-Object -Property @{
@@ -440,18 +441,18 @@ Function Get-ADObjectDetailHC {
             Expression = { "$($_)".Trim() } 
         } -Unique |
         Select-Object -ExpandProperty name
-
+  
         Write-Verbose "Retrieve AD details for $($uniqueSamAccountNames.Count) unique SamAccountNames"
-
+  
         $jobs = @()
-
+  
         $scriptBlock = {
             Param (
                 $SamAccountName
             )
             Try {
                 $adObject = Get-ADObject -Filter 'SamAccountName -eq $SamAccountName'
-
+  
                 if ($adObject.ObjectClass -eq 'group') {
                     $adGroupMember = if ($adObject.Name -ne 'Domain Users') {
                         Get-ADGroupMember -Identity $adObject -Recursive
@@ -464,10 +465,11 @@ Function Get-ADObjectDetailHC {
                         }
                     }
                 }
-
+  
                 [PSCustomObject]@{
                     samAccountName = $SamAccountName
-                    adObject       = $adObject
+                    # avoid deserialization issues with null or empty objects
+                    adObject       = if ($adObject) { $adObject }else { $null };
                     adGroupMember  = $adGroupMember
                 }
             }
@@ -477,7 +479,7 @@ Function Get-ADObjectDetailHC {
             }
         }
     }
-
+  
     Process {
         ForEach ($S in $uniqueSamAccountNames) {
             Write-Verbose "Get AD details for SamAccountName '$S'"
@@ -490,11 +492,11 @@ Function Get-ADObjectDetailHC {
             Wait-MaxRunningJobsHC -Name $jobs -MaxThreads $MaxThreads
         }
     }
-
+  
     End {
         $result = $jobs | Wait-Job | Receive-Job
         $result | Select-Object -Property 'samAccountName', 'adObject', 'adGroupMember'
-
+  
         $jobs | Remove-Job -Force -EA ignore
         Write-Verbose 'Add AD object details retrieved'
     }
