@@ -88,7 +88,6 @@ Function ConvertTo-AceHC {
         }
     }
 }
-
 Function ConvertTo-MatrixADNamesHC {
     <#
     .SYNOPSIS
@@ -192,7 +191,6 @@ Function ConvertTo-MatrixADNamesHC {
         }
     }
 }
-
 Function ConvertTo-MatrixAclHC {
     <#
     .SYNOPSIS
@@ -291,7 +289,6 @@ Function ConvertTo-MatrixAclHC {
         }
     }
 }
-
 Function Format-PermissionsStringsHC {
     <#
     .SYNOPSIS
@@ -336,7 +333,6 @@ Function Format-PermissionsStringsHC {
         }
     }
 }
-
 Function Format-SettingStringsHC {
     <#
     .SYNOPSIS
@@ -405,7 +401,6 @@ Function Format-SettingStringsHC {
         [PSCustomObject]$Obj
     }
 }
-
 Function Get-DefaultAclHC {
     <#
     .SYNOPSIS
@@ -461,7 +456,6 @@ Function Get-DefaultAclHC {
         }
     }
 }
-
 Function Get-ExecutableMatrixHC {
     <#
     .SYNOPSIS
@@ -495,7 +489,6 @@ Function Get-ExecutableMatrixHC {
         throw "Failed retrieving the executable matrix: $_"
     }
 }
-
 Function Get-JobErrorHC {
     <#
     .SYNOPSIS
@@ -561,7 +554,6 @@ Function Get-JobErrorHC {
         throw "Failed retrieving the job errors for job '$($Job.Name)' on '$($Job.Location)': $_"
     }
 }
-
 Function Get-ADObjectNotExistingHC {
     <#
     .SYNOPSIS
@@ -601,7 +593,6 @@ s#>
         }
     }
 }
-
 Function Get-AdUserPrincipalNameHC {
     <#
     .SYNOPSIS
@@ -660,7 +651,6 @@ Function Get-AdUserPrincipalNameHC {
         throw "Failed converting email address or SamAccountName to userPrincipalName: $_"       
     }
 }
-
 Function Test-AclEqualHC {
     <#
 	.SYNOPSIS
@@ -713,7 +703,6 @@ Function Test-AclEqualHC {
         throw "Failed testing the ACL for equality: $_"
     }
 }
-
 Function Test-AclIsInheritedOnlyHC {
     <#
 	.SYNOPSIS
@@ -747,7 +736,6 @@ Function Test-AclIsInheritedOnlyHC {
         throw "Failed testing the ACL for inherited ACE's only: $_"
     }
 }
-
 Function Test-AdObjectsHC {
     Param(
         [parameter(Mandatory)]
@@ -781,7 +769,6 @@ Function Test-AdObjectsHC {
         throw "Failed testing AD object names: $_"
     }
 }
-
 Function Test-ExpandedMatrixHC {
     <#
     .SYNOPSIS
@@ -910,7 +897,6 @@ Function Test-ExpandedMatrixHC {
         throw "Failed validating the expanded matrix: $_"
     }
 }
-
 Function Test-FormDataHC {
     <#
     .SYNOPSIS
@@ -998,7 +984,6 @@ Function Test-FormDataHC {
         }
     }
 }
-
 Function Test-MatrixPermissionsHC {
     <#
     .SYNOPSIS
@@ -1168,7 +1153,6 @@ Function Test-MatrixPermissionsHC {
         }
     }
 }
-
 Function Test-MatrixSettingHC {
     <#
     .SYNOPSIS
