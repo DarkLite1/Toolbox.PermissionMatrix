@@ -1013,7 +1013,7 @@ Function Test-MatrixPermissionsHC {
             $Props = $Permissions[0].PSObject.Properties.Name
             $FirstProperty = $Props[0]
 
-            #region At least 5 rows
+            #region At least 4 rows
             if (@($Permissions).Count -lt 4) {
                 Return [PSCustomObject]@{
                     Type        = 'FatalError'
