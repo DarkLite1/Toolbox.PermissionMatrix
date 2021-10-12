@@ -999,13 +999,6 @@ Function Test-MatrixPermissionsHC {
     .PARAMETER Permissions
         The objects coming from the Excel sheet 'Permissions', as retrieved by
         Import-Excel.
-
-    .PARAMETER FatalErrorType
-        The string used for defining a fatal error message.
-
-    .PARAMETER Location
-        The string used to define the location in the Excel file where the 
-        error ocurred.
 #>
 
     [CmdletBinding()]
