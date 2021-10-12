@@ -1063,20 +1063,18 @@ Function Test-MatrixPermissionsHC {
             #region Folder name missing
             $FolderNames = $NonHeaderRows | Select-Object -Skip 1
 
-            
-                # not applicable to parent folder
-                if (
-                    ($FolderNames) -and
-                    (@($FolderNames.$FirstProperty).Where( { -not ($_) }).Count -ne 0)
-                ) {
-                    [PSCustomObject]@{
-                        Type        = 'FatalError'
-                        Name        = 'Folder name missing'
-                        Description = 'Missing folder name in the first column. A folder name is required to be able to set permissions on it.'
-                        Value       = $null
-                    }
+            # not applicable to parent folder
+            if (
+                ($FolderNames) -and
+                (@($FolderNames.$FirstProperty).Where( { -not ($_) }).Count -ne 0)
+            ) {
+                [PSCustomObject]@{
+                    Type        = 'FatalError'
+                    Name        = 'Folder name missing'
+                    Description = 'Missing folder name in the first column. A folder name is required to be able to set permissions on it.'
+                    Value       = $null
                 }
-            
+            }
             #endregion
 
             #region Duplicate folder name
