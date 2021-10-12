@@ -22,13 +22,13 @@ Describe 'Get-AdUserPrincipalNameHC' {
                     mail        = 'bob@mail.com'
                     ObjectClass = 'user'
                 }                
-            }
+            } -ModuleName $moduleName
             Mock Get-ADUser {
                 New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
                     Enabled           = $true
                     UserPrincipalName = 'bob@contoso.com'
                 }
-            }
+            } -ModuleName $moduleName
 
             $actual = Get-AdUserPrincipalNameHC -Name 'bob@mail.com'
 
@@ -41,13 +41,13 @@ Describe 'Get-AdUserPrincipalNameHC' {
                     mail        = 'bob@mail.com'
                     ObjectClass = 'user'
                 }                
-            }
+            } -ModuleName $moduleName
             Mock Get-ADUser {
                 New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
                     Enabled           = $false
                     UserPrincipalName = 'bob@contoso.com'
                 }
-            }
+            } -ModuleName $moduleName
 
             $actual = Get-AdUserPrincipalNameHC -Name 'bob@mail.com'
 
@@ -77,13 +77,13 @@ Describe 'Get-AdUserPrincipalNameHC' {
                     mail        = 'group@mail.com'
                     ObjectClass = 'group'
                 }                
-            }
+            } -ModuleName $moduleName
             Mock Get-ADGroupMember {
                 $testAdUserObjects
-            }
+            } -ModuleName $moduleName
             Mock Get-ADUser {
                 $testAdUserObjects
-            }
+            } -ModuleName $moduleName
 
             $actual = Get-AdUserPrincipalNameHC -Name 'group@mail.com'
 
@@ -95,7 +95,7 @@ Describe 'Get-AdUserPrincipalNameHC' {
     }
     Context 'when an email address is not found in AD' {
         It 'the email address is added to the notFound array' {
-            Mock Get-ADObject
+            Mock Get-ADObject -ModuleName $moduleName
 
             $actual = Get-AdUserPrincipalNameHC -Name 'bob@mail.com'
 
@@ -103,7 +103,7 @@ Describe 'Get-AdUserPrincipalNameHC' {
             $actual.notFound | Should -Be 'bob@mail.com'
         }
     }
-}
+} 
 Describe 'Test-FormDataHC' {
     Context 'should create a FatalError object when' {
         It 'there is more than one object' {
