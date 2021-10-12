@@ -999,7 +999,7 @@ Function Test-MatrixPermissionsHC {
     .PARAMETER Permissions
         The objects coming from the Excel sheet 'Permissions', as retrieved by
         Import-Excel.
-#>
+    #>
 
     [CmdletBinding()]
     [OutputType([PSCustomObject[]])]
@@ -1014,11 +1014,11 @@ Function Test-MatrixPermissionsHC {
             $FirstProperty = $Props[0]
 
             #region At least 5 rows
-            if (@($Permissions).Count -lt 5) {
+            if (@($Permissions).Count -lt 4) {
                 Return [PSCustomObject]@{
                     Type        = 'FatalError'
                     Name        = 'Missing rows'
-                    Description = 'At least 5 rows are required: 3 header rows. 1 row for the parent folder and at least 1 row for defining permissions on a sub folder.'
+                    Description = 'At least 4 rows are required: 3 header rows and 1 row for the parent folder.'
                     Value       = "$(@($Permissions).Count) rows"
                 }
             }

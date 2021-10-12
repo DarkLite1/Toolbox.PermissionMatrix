@@ -2476,20 +2476,19 @@ Describe 'Test-MatrixPermissionsHC' {
                 }
             }
 
-            $TestName = 'there are less than 5 rows'
+            $TestName = 'there are less than 4 rows'
             @{
                 TestName    = $TestName
                 Permissions = @(
                     [PSCustomObject]@{P1 = $null      ; P2 = 'Manager'    ; P3 = $null }
                     [PSCustomObject]@{P1 = 'SiteCode' ; P2 = 'SiteCode'   ; P3 = $null }
                     [PSCustomObject]@{P1 = 'GroupName'; P2 = 'GroupName'  ; P3 = $null }
-                    [PSCustomObject]@{P1 = 'Path'     ; P2 = 'L'          ; P3 = 'L' }
                 )
                 Expected    = @{
                     Type        = 'FatalError'
-                    Description = 'At least 5 rows are required: 3 header rows. 1 row for the parent folder and at least 1 row for defining permissions on a sub folder.'
+                    Description = 'At least 4 rows are required: 3 header rows and 1 row for the parent folder.'
                     Name        = 'Missing rows'
-                    Value       = '4 rows'
+                    Value       = '3 rows'
                 }
             }
 
