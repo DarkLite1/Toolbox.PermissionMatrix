@@ -1060,29 +1060,6 @@ Function Test-MatrixPermissionsHC {
             }
             #endregion
 
-            $ParentFolderPermissions = ($Permissions[3].PSObject.Properties.Where( { $_.Name -ne $FirstProperty }).Where( {
-                        $_.Value })).Value
-
-            #region Permissions missing for parent folder
-            if (@(($ParentFolderPermissions).Where( { $_ })).Count -eq 0) {
-                [PSCustomObject]@{
-                    Type        = 'FatalError'
-                    Name        = 'Permissions missing on parent folder'
-                    Description = 'Missing permissions on the parent folder. At least one permission character needs to be set.'
-                    Value       = $null
-                }
-            }
-
-            if ($ParentFolderPermissions -contains 'i') {
-                [PSCustomObject]@{
-                    Type        = 'FatalError'
-                    Name        = 'Permissions missing on parent folder'
-                    Description = "The permission ignore 'i' cannot be used on the parent folder."
-                    Value       = $null
-                }
-            }
-            #endregion
-
             #region Folder name missing
             $FolderNames = $NonHeaderRows | Select-Object -Skip 1
 
@@ -1119,6 +1096,9 @@ Function Test-MatrixPermissionsHC {
                         $P
                     }
                 })
+
+            $ParentFolderPermissions = ($Permissions[3].PSObject.Properties.Where( { $_.Name -ne $FirstProperty }).Where( {
+                        $_.Value })).Value
 
             $ParentFolderHasPermission = $ParentFolderPermissions.Where( { $_ -ne 'L' })
 

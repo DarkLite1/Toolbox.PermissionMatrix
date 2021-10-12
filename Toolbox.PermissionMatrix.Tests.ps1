@@ -2458,24 +2458,6 @@ Describe 'Test-MatrixPermissionsHC' {
     }
     Context 'a FatalError object is created when' {
         $TestCases = @(
-            $TestName = 'an ignore (i) permission is used for the parent folder'
-            @{
-                TestName    = $TestName
-                Permissions = @(
-                    [PSCustomObject]@{P1 = $null      ; P2 = 'Manager'  ; P3 = 'Bob'; P4 = 'Mike' }
-                    [PSCustomObject]@{P1 = 'SiteCode' ; P2 = 'SiteCode' ; P3 = ''   ; P4 = '' }
-                    [PSCustomObject]@{P1 = 'GroupName'; P2 = 'GroupName'; P3 = ''   ; P4 = '' }
-                    [PSCustomObject]@{P1 = 'Parent'   ; P2 = $null      ; P3 = 'i'  ; P4 = '' }
-                    [PSCustomObject]@{P1 = 'Folder'   ; P2 = 'R'        ; P3 = 'R'  ; P4 = 'W' }
-                )
-                Expected    = @{
-                    Type        = 'FatalError'
-                    Name        = 'Permissions missing on parent folder'
-                    Description = "The permission ignore 'i' cannot be used on the parent folder."
-                    Value       = $null
-                }
-            }
-
             $TestName = 'there are less than 4 rows'
             @{
                 TestName    = $TestName
@@ -2527,24 +2509,6 @@ Describe 'Test-MatrixPermissionsHC' {
                     Description = "The only supported characters, to define permissions on a folder, are 'F' (FullControl), 'W' (Write/Modify), 'R' (Read), 'L' (List) or ' ' (blank)."
                     Name        = 'Permission character unknown'
                     Value       = @('*', 'X')
-                }
-            }
-
-            $TestName = 'no permissions are defined for the parent folder'
-            @{
-                TestName    = $TestName
-                Permissions = @(
-                    [PSCustomObject]@{P1 = $null      ; P2 = 'Manager'  ; P3 = 'Bob'; P4 = 'Mike' }
-                    [PSCustomObject]@{P1 = 'SiteCode' ; P2 = 'SiteCode' ; P3 = ''   ; P4 = '' }
-                    [PSCustomObject]@{P1 = 'GroupName'; P2 = 'GroupName'; P3 = ''   ; P4 = '' }
-                    [PSCustomObject]@{P1 = 'Parent'   ; P2 = $null      ; P3 = ''   ; P4 = '' }
-                    [PSCustomObject]@{P1 = 'Folder'   ; P2 = 'R'        ; P3 = 'R'  ; P4 = 'W' }
-                )
-                Expected    = @{
-                    Type        = 'FatalError'
-                    Description = 'Missing permissions on the parent folder. At least one permission character needs to be set.'
-                    Name        = 'Permissions missing on parent folder'
-                    Value       = $null
                 }
             }
 
