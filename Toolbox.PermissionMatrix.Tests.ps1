@@ -1564,7 +1564,7 @@ Describe 'Test-AclEqualHC' {
             }
         }
     }
-} -tag 'Test-AclEqualHC'
+} -Tag 'Test-AclEqualHC'
 Describe 'Test-AclIsInheritedOnlyHC' {
     BeforeAll {
         $BuiltinAdmin = New-Object System.Security.AccessControl.FileSystemAccessRule(
@@ -2313,7 +2313,7 @@ Describe 'Test-ExpandedMatrixHC' {
             }
         }
     }
-}  -Tag test
+}
 Describe 'Test-MatrixPermissionsHC' {
     Context 'Deepest folder has only List permissions or none at all' {
         Context 'no Warning object is created when' {
@@ -2565,6 +2565,30 @@ Describe 'Test-MatrixPermissionsHC' {
             $actual.Value | Should -Be $expected.Value
         }
     }
+    Context 'no FatalError object is created when' {
+        $TestCases = @(
+            $TestName = 'there is only the parent path in the permissions sheet'
+            @{
+                TestName    = $TestName
+                Permissions = @(
+                    [PSCustomObject]@{P1 = $null      ; P2 = 'Manager' }
+                    [PSCustomObject]@{P1 = 'SiteCode' ; P2 = 'SiteCode' }
+                    [PSCustomObject]@{P1 = 'GroupName'; P2 = 'GroupName' }
+                    [PSCustomObject]@{P1 = 'Path'  ; P2 = 'L' }
+                )
+            }
+        )
+        It '<TestName>' -TestCases $TestCases {
+            Param (
+                $Permissions,
+                $expected
+            )
+
+            $actual = Test-MatrixPermissionsHC -Permissions $Permissions
+
+            $actual | Should  -BeNullOrEmpty
+        }
+    } -tag test
 }
 Describe 'Test-AdObjectsHC' {
     Context 'a FatalError object is created when' {
