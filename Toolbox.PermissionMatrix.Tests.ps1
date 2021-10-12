@@ -103,7 +103,7 @@ Describe 'Get-AdUserPrincipalNameHC' {
             $actual.notFound | Should -Be 'bob@mail.com'
         }
     }
-} 
+} -Tag test
 Describe 'Test-FormDataHC' {
     Context 'should create a FatalError object when' {
         It 'there is more than one object' {
@@ -2588,7 +2588,7 @@ Describe 'Test-MatrixPermissionsHC' {
 
             $actual | Should  -BeNullOrEmpty
         }
-    } -tag test
+    }
 }
 Describe 'Test-AdObjectsHC' {
     Context 'a FatalError object is created when' {
