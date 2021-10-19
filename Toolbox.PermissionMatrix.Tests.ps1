@@ -34,7 +34,7 @@ Describe 'Get-AdUserPrincipalNameHC' {
 
             $actual.userPrincipalName | Should -Be 'bob@contoso.com'
             $actual.notFound | Should -BeNullOrEmpty
-        }
+        } -Tag test
         It 'not converted to the userPrincipalName when the account is not enabled' {
             Mock Get-ADObject {
                 New-Object Microsoft.ActiveDirectory.Management.ADObject Identity -Property @{
@@ -103,7 +103,7 @@ Describe 'Get-AdUserPrincipalNameHC' {
             $actual.notFound | Should -Be 'bob@mail.com'
         }
     }
-} -Tag test
+} 
 Describe 'Test-FormDataHC' {
     Context 'should create a FatalError object when' {
         It 'there is more than one object' {
