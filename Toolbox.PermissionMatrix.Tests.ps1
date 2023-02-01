@@ -34,7 +34,7 @@ Describe 'Get-AdUserPrincipalNameHC' {
 
             $actual.userPrincipalName | Should -Be 'bob@contoso.com'
             $actual.notFound | Should -BeNullOrEmpty
-        } -Tag test
+        }
         It 'not converted to the userPrincipalName when the account is not enabled' {
             Mock Get-ADObject {
                 New-Object Microsoft.ActiveDirectory.Management.ADObject Identity -Property @{
@@ -220,7 +220,8 @@ Describe 'ConvertTo-AceHC' {
 
         $actual = ConvertTo-AceHC -Type L -Name $env:USERNAME
 
-        Assert-Equivalent -Actual $actual -Expected $expected
+        $actual | ConvertTo-Json | 
+        Should -BeExactly ($expected | ConvertTo-Json)
     }
     It 'W for Write' {
         $expected = @(
@@ -243,7 +244,8 @@ Describe 'ConvertTo-AceHC' {
 
         $actual = ConvertTo-AceHC -Type W -Name $env:USERNAME
 
-        Assert-Equivalent -Actual $actual -Expected $expected
+        $actual | ConvertTo-Json | 
+        Should -BeExactly ($expected | ConvertTo-Json)
     }
     It 'R for Read' {
         $expected = New-Object System.Security.AccessControl.FileSystemAccessRule(
@@ -256,7 +258,8 @@ Describe 'ConvertTo-AceHC' {
 
         $actual = ConvertTo-AceHC -Type R -Name $env:USERNAME
 
-        Assert-Equivalent -Actual $actual -Expected $expected
+        $actual | ConvertTo-Json | 
+        Should -BeExactly ($expected | ConvertTo-Json)
     }
     It 'F for FullControl' {
         # Standard List
@@ -270,7 +273,8 @@ Describe 'ConvertTo-AceHC' {
 
         $actual = ConvertTo-AceHC -Type F -Name $env:USERNAME
 
-        Assert-Equivalent -Actual $actual -Expected $expected
+        $actual | ConvertTo-Json | 
+        Should -BeExactly ($expected | ConvertTo-Json)
     }
     It 'M for Modify' {
         $expected = New-Object System.Security.AccessControl.FileSystemAccessRule(
@@ -283,7 +287,8 @@ Describe 'ConvertTo-AceHC' {
 
         $actual = ConvertTo-AceHC -Type M -Name $env:USERNAME
 
-        Assert-Equivalent -Actual $actual -Expected $expected
+        $actual | ConvertTo-Json | 
+        Should -BeExactly ($expected | ConvertTo-Json)
     }
 }
 Describe 'ConvertTo-MatrixADNamesHC' {
@@ -576,14 +581,14 @@ Describe 'ConvertTo-MatrixAclHC' {
                     [PSCustomObject]@{
                         Path   = 'F1'
                         Parent = $true
-                        ACL    = @{'bob' = 'L' }
                         Ignore = $false
+                        ACL    = @{'bob' = 'L' }
                     }
                     [PSCustomObject]@{
                         Path   = 'F2'
                         Parent = $false
-                        ACL    = @{'bob' = 'W' }
                         Ignore = $false
+                        ACL    = @{'bob' = 'W' }
                     }
                 )
             }
@@ -598,9 +603,9 @@ Describe 'ConvertTo-MatrixAclHC' {
                 }
                 Expected      = [PSCustomObject]@{
                     Path   = 'Path'
-                    ACL    = @{'bob' = 'L' }
                     Parent = $true
                     Ignore = $false
+                    ACL    = @{'bob' = 'L' }
                 }
             }
         )
@@ -612,7 +617,8 @@ Describe 'ConvertTo-MatrixAclHC' {
             }
             $actual = ConvertTo-MatrixAclHC @testParams
 
-            Assert-Equivalent -Actual $actual -Expected $expected
+            ($actual | ConvertTo-Json) | 
+            Should -BeExactly ($expected | ConvertTo-Json)
         }
     }
     Context 'ACL' {
@@ -658,15 +664,15 @@ Describe 'ConvertTo-MatrixAclHC' {
                 Expected      = @(
                     [PSCustomObject]@{
                         Path   = 'Path'
-                        ACL    = @{}
                         Parent = $true
                         Ignore = $false
+                        ACL    = @{}
                     }
                     [PSCustomObject]@{
                         Path   = 'F1'
-                        ACL    = @{}
                         Parent = $false
                         Ignore = $false
+                        ACL    = @{}
                     }
                 )
             }
@@ -679,7 +685,8 @@ Describe 'ConvertTo-MatrixAclHC' {
             }
             $actual = ConvertTo-MatrixAclHC @testParams
 
-            Assert-Equivalent -Actual $actual -Expected $expected
+            $actual | ConvertTo-Json | 
+            Should -BeExactly ($expected | ConvertTo-Json)
         }
     } 
     Context 'ignore is TRUE and ACL is empty when' {
@@ -806,7 +813,8 @@ Describe 'ConvertTo-MatrixAclHC' {
             }
             $actual = ConvertTo-MatrixAclHC @testParams
 
-            Assert-Equivalent -Actual $actual -Expected $expected
+            $actual | ConvertTo-Json | 
+            Should -BeExactly ($expected | ConvertTo-Json)
         }
     }
 }
@@ -927,21 +935,21 @@ Describe 'Format-SettingStringsHC' {
             @{
                 TestName = $TestName
                 Settings = [PSCustomObject]@{
-                    Status       = 'Enabled'
-                    ComputerName = 'SERVER'
                     Path         = 'E:\DEPARTMENTS\Finance'
-                    GroupName    = 'BEL'
-                    SiteName     = 'BRUSSELS'
+                    ComputerName = 'SERVER'
                     SiteCode     = 'BXL'
+                    SiteName     = 'BRUSSELS'
+                    GroupName    = 'BEL'
+                    Status       = 'Enabled'
                     Action       = 'Fix'
                 }
                 Expected = [PSCustomObject]@{
-                    Status       = 'Enabled'
-                    ComputerName = 'SERVER'
                     Path         = 'E:\DEPARTMENTS\Finance'
-                    GroupName    = 'BEL'
-                    SiteName     = 'BRUSSELS'
+                    ComputerName = 'SERVER'
                     SiteCode     = 'BXL'
+                    SiteName     = 'BRUSSELS'
+                    GroupName    = 'BEL'
+                    Status       = 'Enabled'
                     Action       = 'Fix'
                 }
             }
@@ -950,21 +958,21 @@ Describe 'Format-SettingStringsHC' {
             @{
                 TestName = $TestName
                 Settings = [PSCustomObject]@{
-                    Status       = ' ENABLED '
-                    ComputerName = ' SERVER '
                     Path         = ' E:\DEPARTMENTS\Finance\ '
-                    GroupName    = ' BEL '
-                    SiteName     = ' BRUSSELS '
+                    ComputerName = ' SERVER '
                     SiteCode     = ' BXL '
+                    SiteName     = ' BRUSSELS '
+                    GroupName    = ' BEL '
+                    Status       = ' ENABLED '
                     Action       = ' FIX '
                 }
                 Expected = [PSCustomObject]@{
-                    Status       = 'Enabled'
-                    ComputerName = 'SERVER'
                     Path         = 'E:\DEPARTMENTS\Finance'
-                    GroupName    = 'BEL'
-                    SiteName     = 'BRUSSELS'
+                    ComputerName = 'SERVER'
                     SiteCode     = 'BXL'
+                    SiteName     = 'BRUSSELS'
+                    GroupName    = 'BEL'
+                    Status       = 'Enabled'
                     Action       = 'Fix'
                 }
             }
@@ -973,21 +981,21 @@ Describe 'Format-SettingStringsHC' {
             @{
                 TestName = $TestName
                 Settings = [PSCustomObject]@{
-                    Status       = 'Enabled'
-                    ComputerName = 'SERVER' + '.' + $env:USERDNSDOMAIN
                     Path         = 'E:\DEPARTMENTS\Finance'
-                    GroupName    = 'BEL'
-                    SiteName     = 'BRUSSELS'
+                    ComputerName = 'SERVER' + '.' + $env:USERDNSDOMAIN
                     SiteCode     = 'BXL'
+                    SiteName     = 'BRUSSELS'
+                    GroupName    = 'BEL'
+                    Status       = 'Enabled'
                     Action       = 'Fix'
                 }
                 Expected = [PSCustomObject]@{
-                    Status       = 'Enabled'
-                    ComputerName = 'SERVER'
                     Path         = 'E:\DEPARTMENTS\Finance'
-                    GroupName    = 'BEL'
-                    SiteName     = 'BRUSSELS'
+                    ComputerName = 'SERVER'
                     SiteCode     = 'BXL'
+                    SiteName     = 'BRUSSELS'
+                    GroupName    = 'BEL'
+                    Status       = 'Enabled'
                     Action       = 'Fix'
                 }
             }
@@ -996,21 +1004,21 @@ Describe 'Format-SettingStringsHC' {
             @{
                 TestName = $TestName
                 Settings = [PSCustomObject]@{
-                    Status       = 'Enabled'
-                    ComputerName = 'SERVER.wrong.net'
                     Path         = 'E:\DEPARTMENTS\Finance'
-                    GroupName    = 'BEL'
-                    SiteName     = 'BRUSSELS'
+                    ComputerName = 'SERVER.wrong.net'
                     SiteCode     = 'BXL'
+                    SiteName     = 'BRUSSELS'
+                    GroupName    = 'BEL'
+                    Status       = 'Enabled'
                     Action       = 'Fix'
                 }
                 Expected = [PSCustomObject]@{
-                    Status       = 'Enabled'
-                    ComputerName = 'SERVER.wrong.net'
                     Path         = 'E:\DEPARTMENTS\Finance'
-                    GroupName    = 'BEL'
-                    SiteName     = 'BRUSSELS'
+                    ComputerName = 'SERVER.WRONG.NET'
                     SiteCode     = 'BXL'
+                    SiteName     = 'BRUSSELS'
+                    GroupName    = 'BEL'
+                    Status       = 'Enabled'
                     Action       = 'Fix'
                 }
             }
@@ -1019,21 +1027,21 @@ Describe 'Format-SettingStringsHC' {
             @{
                 TestName = $TestName
                 Settings = [PSCustomObject]@{
-                    Status       = ' '
-                    ComputerName = $null
                     Path         = ' '
-                    GroupName    = 'BEL'
-                    SiteName     = 'BRUSSELS'
+                    ComputerName = $null
                     SiteCode     = $null
+                    SiteName     = 'BRUSSELS'
+                    GroupName    = 'BEL'
+                    Status       = ' '
                     Action       = ''
                 }
                 Expected = [PSCustomObject]@{
-                    Status       = $null
-                    ComputerName = $null
                     Path         = $null
-                    GroupName    = 'BEL'
-                    SiteName     = 'BRUSSELS'
+                    ComputerName = $null
                     SiteCode     = $null
+                    SiteName     = 'BRUSSELS'
+                    GroupName    = 'BEL'
+                    Status       = $null
                     Action       = $null
                 }
             }
@@ -1046,8 +1054,10 @@ Describe 'Format-SettingStringsHC' {
                     $expected
                 )
 
+                
                 $actual = Format-SettingStringsHC -Settings $Settings
-                Assert-Equivalent -Actual $actual -Expected $expected
+                $actual | ConvertTo-Json | 
+                Should -BeExactly ($expected | ConvertTo-Json)
             }
         }
         Context 'with the arguments passed through the pipeline' {
@@ -1058,7 +1068,8 @@ Describe 'Format-SettingStringsHC' {
                 )
 
                 $actual = $Settings | Format-SettingStringsHC
-                Assert-Equivalent -Actual $actual -Expected $expected
+                $actual | ConvertTo-Json | 
+                Should -BeExactly ($expected | ConvertTo-Json)
             }
         }
     }
@@ -1176,7 +1187,8 @@ Describe 'Get-DefaultAclHC' {
             )
 
             $actual = Get-DefaultAclHC -Sheet $DefaultsFile
-            Assert-Equivalent -Actual $actual -Expected $expected
+            $actual | ConvertTo-Json | 
+            Should -BeExactly ($expected | ConvertTo-Json)
         }
     }
 }
@@ -1264,7 +1276,8 @@ Describe 'Get-ExecutableMatrixHC' {
             )
 
             $actual = Get-ExecutableMatrixHC -From $testFile
-            Assert-Equivalent -Actual $actual -Expected $expected
+            $actual | ConvertTo-Json | 
+            Should -BeExactly ($expected | ConvertTo-Json)
         }
         It "when one matrix in the same file has a FatalError but the others don't" {
             $testFile = @(
@@ -1692,11 +1705,12 @@ Describe 'Test-ExpandedMatrixHC' {
                     )
                 }
 
-                $expected.Value = 'lswagger'
+                $expected.Value = @('lswagger')
 
                 $actual = Test-ExpandedMatrixHC @testParams | 
                 Where-Object Name -EQ $expected.Name
-                Assert-Equivalent -Actual $actual -Expected $expected
+                $actual | ConvertTo-Json | 
+                Should -BeExactly ($expected | ConvertTo-Json)
             }
             It 'multiple SamAccountNames in the matrix are not found in AD' {
                 $testParams = @{
@@ -1722,11 +1736,13 @@ Describe 'Test-ExpandedMatrixHC' {
                     )
                 }
 
-                $expected.Value = 'lswagger', 'bob'
+                $expected.Value = @('lswagger', 'bob')
 
                 $actual = Test-ExpandedMatrixHC @testParams | 
                 Where-Object Name -EQ $expected.Name
-                Assert-Equivalent -Actual $actual -Expected $expected
+
+                $actual | ConvertTo-Json | 
+                Should -BeExactly ($expected | ConvertTo-Json)
             }
         } 
         Context 'return no output when' {
@@ -1811,11 +1827,13 @@ Describe 'Test-ExpandedMatrixHC' {
                     )
                 }
 
-                $expected.Value = 'group2'
+                $expected.Value = @('group2')
 
                 $actual = Test-ExpandedMatrixHC @testParams | 
                 Where-Object Name -EQ $expected.Name
-                Assert-Equivalent -Actual $actual -Expected $expected
+                
+                $actual | ConvertTo-Json | 
+                Should -BeExactly ($expected | ConvertTo-Json)
             } 
             It 'a matrix contains multiple groups without members' {
                 $testParams = @{
@@ -1847,11 +1865,13 @@ Describe 'Test-ExpandedMatrixHC' {
                     )
                 }
 
-                $expected.Value = 'group1', 'group2'
+                $expected.Value = @('group1', 'group2')
 
                 $actual = Test-ExpandedMatrixHC @testParams | 
                 Where-Object Name -EQ $expected.Name
-                Assert-Equivalent -Actual $actual -Expected $expected
+                
+                $actual | ConvertTo-Json | 
+                Should -BeExactly ($expected | ConvertTo-Json)
             }
             It 'a matrix contains a group with only excluded accounts' {
                 $testParams = @{
@@ -1905,11 +1925,13 @@ Describe 'Test-ExpandedMatrixHC' {
                     )
                 }
 
-                $expected.Value = 'group1', 'group3'
+                $expected.Value = @('group1', 'group3')
 
                 $actual = Test-ExpandedMatrixHC @testParams -ExcludedSamAccountName 'picard', 'kirk' | 
                 Where-Object Name -EQ $expected.Name
-                Assert-Equivalent -Actual $actual -Expected $expected
+                
+                $actual | ConvertTo-Json | 
+                Should -BeExactly ($expected | ConvertTo-Json)
             } 
         }
         Context 'return no output when' {
@@ -2048,8 +2070,10 @@ Describe 'Test-ExpandedMatrixHC' {
 
                 $actual = Test-ExpandedMatrixHC @testParams | 
                 Where-Object Name -EQ $expected.Name
-                Assert-Equivalent -Actual $actual -Expected $expected
-            } 
+                
+                $actual | ConvertTo-Json | 
+                Should -BeExactly ($expected | ConvertTo-Json)
+            }
             It 'a folder ACL contains multiple groups where no user account is member' {
                 $testParams = @{
                     Matrix   = @(
@@ -2079,7 +2103,9 @@ Describe 'Test-ExpandedMatrixHC' {
 
                 $actual = Test-ExpandedMatrixHC @testParams | 
                 Where-Object Name -EQ $expected.Name
-                Assert-Equivalent -Actual $actual -Expected $expected
+                
+                $actual | ConvertTo-Json | 
+                Should -BeExactly ($expected | ConvertTo-Json)
             }
         }
         Context 'return no output when' {
@@ -2211,11 +2237,13 @@ Describe 'Test-ExpandedMatrixHC' {
                     DefaultAcl = @{'group1' = 'R' }
                 }
                 
-                $expected.Value = 'group1'
+                $expected.Value = @('group1')
 
                 $actual = Test-ExpandedMatrixHC @testParams | 
                 Where-Object Name -EQ $expected.Name 
-                Assert-Equivalent -Actual $actual -Expected $expected
+                
+                $actual | ConvertTo-Json | 
+                Should -BeExactly ($expected | ConvertTo-Json)
             }
             It 'multiple duplicates are found' {
                 $testParams = @{
@@ -2243,11 +2271,13 @@ Describe 'Test-ExpandedMatrixHC' {
                     DefaultAcl = @{'group1' = 'R' ; 'lswagger' = 'R' }
                 }
                 
-                $expected.Value = 'group1', 'lswagger'
+                $expected.Value = @('lswagger', 'group1')
 
                 $actual = Test-ExpandedMatrixHC @testParams | 
                 Where-Object Name -EQ $expected.Name 
-                Assert-Equivalent -Actual $actual -Expected $expected
+                
+                $actual | ConvertTo-Json | 
+                Should -BeExactly ($expected | ConvertTo-Json)
             }
         }
         Context 'return no output when' {

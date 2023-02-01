@@ -357,7 +357,7 @@ Function Format-SettingStringsHC {
     )
 
     Process {
-        $Obj = @{}
+        $Obj = [ordered]@{}
 
         ($Settings.PSObject.Properties).Foreach( {
 
