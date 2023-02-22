@@ -1021,7 +1021,7 @@ Describe 'Format-SettingStringsHC' {
                     Status       = 'Enabled'
                     Action       = 'Fix'
                 }
-            }
+            } 
 
             $TestName = 'convert blanks to NULL'
             @{
@@ -1053,7 +1053,6 @@ Describe 'Format-SettingStringsHC' {
                     $Settings,
                     $expected
                 )
-
                 
                 $actual = Format-SettingStringsHC -Settings $Settings
                 $actual | ConvertTo-Json | 
@@ -2679,13 +2678,30 @@ Describe 'Test-AdObjectsHC' {
 Describe 'Test-MatrixSettingHC' {
     Context 'a FatalError object is created when' {
         $TestCases = @(
+            $TestName = 'the property JobsAtOnce is not an integer'
+            @{
+                TestName = $TestName
+                Setting  = [PSCustomObject]@{
+                    ComputerName = 'S1'
+                    Path         = 'E:\Department'
+                    Action       = 'Fix'
+                    JobsAtOnce   = 'a'
+                }
+                Expected = [PSCustomObject]@{
+                    Type        = 'FatalError'
+                    Name        = 'JobsAtOnce is not a valid number'
+                    Description = "The value for 'JobsAtOnce' needs to be a number between 1 and 8."
+                    Value       = 'a'
+                }
+            } 
             $TestName = 'the column header ComputerName is missing'
             @{
                 TestName = $TestName
                 Setting  = [PSCustomObject]@{
                     #ComputerName='S1'
-                    Path   = 'E:\Department'
-                    Action = 'Fix'
+                    Path       = 'E:\Department'
+                    Action     = 'Fix'
+                    JobsAtOnce = '1'
                 }
                 Expected = [PSCustomObject]@{
                     Type        = 'FatalError'

@@ -360,13 +360,20 @@ Function Format-SettingStringsHC {
         $Obj = [ordered]@{}
 
         ($Settings.PSObject.Properties).Foreach( {
-
-                $Value = if ($tmpVal = $_.Value) { $tmpVal.ToString().Trim() }
+                $Value = if ($tmpVal = $_.Value) { 
+                    $tmpVal.ToString().Trim() 
+                }
+                else {
+                    $null
+                }
 
                 $Obj.($_.Name) = Switch ($_.Name) {
                     'Action' {
                         if ($Value) {
                             $Value.SubString(0, 1).ToUpper() + $Value.SubString(1).ToLower()
+                        }
+                        else {
+                            $null
                         }
                         break
                     }
@@ -378,17 +385,26 @@ Function Format-SettingStringsHC {
                             }
                             $Value
                         }
+                        else {
+                            $null
+                        }
                         break
                     }
                     'Path' {
                         if ($Value) {
                             $Value.TrimEnd('\')
                         }
+                        else {
+                            $null
+                        }
                         break
                     }
                     'Status' {
                         if ($Value) {
                             $Value.SubString(0, 1).ToUpper() + $Value.SubString(1).ToLower()
+                        }
+                        else {
+                            $null
                         }
                         break
                     }
@@ -1201,6 +1217,35 @@ Function Test-MatrixSettingHC {
                     Name        = 'Path value incorrect'
                     Description = "The 'Path' needs to be defined as a local folder (Ex. 'E:\Department\Finance')."
                     Value       = $Setting.Path
+                }
+            }
+            #endregion
+
+            #region JobsAtOnce is not an integer or not a number between 1-8
+            if ($Setting.JobsAtOnce) {
+                try {
+                    $incorrectNumber = $false
+                    $number = [int]$Setting.JobsAtOnce
+                }
+                catch {
+                    $global:Error.RemoveAt(0)
+                    $incorrectNumber = $true
+                }
+
+                if (
+                    (-not $incorrectNumber) -and
+                    (-not (0..8 -contains $number))
+                ) {
+                    $incorrectNumber = $true
+                }
+
+                if ($incorrectNumber) {
+                    [PSCustomObject]@{
+                        Type        = 'FatalError'
+                        Name        = 'JobsAtOnce is not a valid number'
+                        Description = "The value for 'JobsAtOnce' needs to be a number between 1 and 8."
+                        Value       = $Setting.JobsAtOnce
+                    }
                 }
             }
             #endregion
