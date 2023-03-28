@@ -19,12 +19,14 @@ Describe 'Get-AdUserPrincipalNameHC' {
         It 'converted to the userPrincipalName for an enabled account' {
             Mock Get-ADObject {
                 New-Object Microsoft.ActiveDirectory.Management.ADObject Identity -Property @{
-                    mail        = 'bob@mail.com'
-                    ObjectClass = 'user'
+                    SamAccountName = 'bob'
+                    mail           = 'bob@mail.com'
+                    ObjectClass    = 'user'
                 }                
             } -ModuleName $moduleName
             Mock Get-ADUser {
                 New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
+                    SamAccountName    = 'bob'
                     Enabled           = $true
                     UserPrincipalName = 'bob@contoso.com'
                 }
@@ -59,14 +61,17 @@ Describe 'Get-AdUserPrincipalNameHC' {
         It 'returns the userPrincipalName for all enabled user member accounts' {
             $testAdUserObjects = @(
                 New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
+                    SamAccountName    = 'bob'
                     Enabled           = $true
                     UserPrincipalName = 'bob@contoso.com'
                 }
                 New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
+                    SamAccountName    = 'mike'
                     Enabled           = $true
                     UserPrincipalName = 'mike@contoso.com'
                 }
                 New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
+                    SamAccountName    = 'jack'
                     Enabled           = $false
                     UserPrincipalName = 'jack@contoso.com'
                 }
@@ -74,8 +79,9 @@ Describe 'Get-AdUserPrincipalNameHC' {
 
             Mock Get-ADObject {
                 New-Object Microsoft.ActiveDirectory.Management.ADObject Identity -Property @{
-                    mail        = 'group@mail.com'
-                    ObjectClass = 'group'
+                    SamAccountName = 'group'
+                    mail           = 'group@mail.com'
+                    ObjectClass    = 'group'
                 }                
             } -ModuleName $moduleName
             Mock Get-ADGroupMember {
@@ -86,6 +92,51 @@ Describe 'Get-AdUserPrincipalNameHC' {
             } -ModuleName $moduleName
 
             $actual = Get-AdUserPrincipalNameHC -Name 'group@mail.com'
+
+            $actual.userPrincipalName.Count | Should -BeExactly 2
+            $actual.userPrincipalName[0] | Should -Be 'bob@contoso.com'
+            $actual.userPrincipalName[1] | Should -Be 'mike@contoso.com'
+            $actual.notFound | Should -BeNullOrEmpty
+        }
+        It 'excludes the userPrincipalName for ExcludeSamAccountName' {
+            $testAdUserObjects = @(
+                New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
+                    SamAccountName    = 'bond'
+                    Enabled           = $true
+                    UserPrincipalName = 'bond@contoso.com'
+                }
+                New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
+                    SamAccountName    = 'bob'
+                    Enabled           = $true
+                    UserPrincipalName = 'bob@contoso.com'
+                }
+                New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
+                    SamAccountName    = 'mike'
+                    Enabled           = $true
+                    UserPrincipalName = 'mike@contoso.com'
+                }
+                New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
+                    SamAccountName    = 'jack'
+                    Enabled           = $false
+                    UserPrincipalName = 'jack@contoso.com'
+                }
+            )
+
+            Mock Get-ADObject {
+                New-Object Microsoft.ActiveDirectory.Management.ADObject Identity -Property @{
+                    SamAccountName = 'group'
+                    mail           = 'group@mail.com'
+                    ObjectClass    = 'group'
+                }                
+            } -ModuleName $moduleName
+            Mock Get-ADGroupMember {
+                $testAdUserObjects
+            } -ModuleName $moduleName
+            Mock Get-ADUser {
+                $testAdUserObjects
+            } -ModuleName $moduleName
+
+            $actual = Get-AdUserPrincipalNameHC -Name 'group@mail.com' -ExcludeSamAccountName 'bond'
 
             $actual.userPrincipalName.Count | Should -BeExactly 2
             $actual.userPrincipalName[0] | Should -Be 'bob@contoso.com'
@@ -103,7 +154,7 @@ Describe 'Get-AdUserPrincipalNameHC' {
             $actual.notFound | Should -Be 'bob@mail.com'
         }
     }
-} -ForEach @{ moduleName = $moduleName }
+} -ForEach @{ moduleName = $moduleName } -Tag test
 Describe 'Test-FormDataHC' {
     Context 'should create a FatalError object when' {
         It 'there is more than one object' {

@@ -628,7 +628,8 @@ Function Get-AdUserPrincipalNameHC {
     [OutputType([HashTable])]
     Param(
         [Parameter(Mandatory)]
-        [String[]]$Name
+        [String[]]$Name,
+        [String[]]$ExcludeSamAccountName
     )
 
     try {
@@ -654,7 +655,10 @@ Function Get-AdUserPrincipalNameHC {
             }
     
             $adUsers | Get-ADUser |
-            Where-Object { $_.Enabled } |
+            Where-Object { 
+                ($_.Enabled) -and
+                ($ExcludeSamAccountName -notContains $_.SamAccountName)
+            } |
             Select-Object -ExpandProperty 'UserPrincipalName'
         }
     
