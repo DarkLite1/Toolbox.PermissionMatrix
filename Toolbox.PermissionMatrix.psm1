@@ -94,14 +94,14 @@ Function ConvertTo-MatrixADNamesHC {
         Generate AD SamAccountNames from the first three rows in the Excel file.
 
     .DESCRIPTION
-        Generate AD SamAccountNames from the first three rows in worksheet 
+        Generate AD SamAccountNames from the first three rows in worksheet
         'Permissions' by replacing strings with the correct values.
 
-        In case the value in A2 and B2 are equal, they are replaced by the 
-        string defined in 'Middle'. In case the value in A3 and B3 are equal, 
+        In case the value in A2 and B2 are equal, they are replaced by the
+        string defined in 'Middle'. In case the value in A3 and B3 are equal,
         they are replaced by the value in 'Begin'.
 
-        The template name to replace is always defined in cell A2 and A3 for 
+        The template name to replace is always defined in cell A2 and A3 for
         their respective row.
 
     .PARAMETER ColumnHeaders
@@ -109,11 +109,11 @@ Function ConvertTo-MatrixADNamesHC {
         contain the values to create the correct SamAccountNames.
 
     .PARAMETER Begin
-        The value of the first part of the newly generated string. Usually this 
+        The value of the first part of the newly generated string. Usually this
         is the beginning of an AD GroupName like 'BEL ROL-AGG-SAGREX'.
 
     .PARAMETER Middle
-        The value of the middle part of the newly generated string. Usually 
+        The value of the middle part of the newly generated string. Usually
         this is something like 'North'.
  #>
 
@@ -137,8 +137,8 @@ Function ConvertTo-MatrixADNamesHC {
 
             $result = @{}
 
-            $ColumnHeaders[0].PSObject.Properties.Name.Where( { 
-                    $_ -ne $firstProperty 
+            $ColumnHeaders[0].PSObject.Properties.Name.Where( {
+                    $_ -ne $firstProperty
                 }).Foreach( {
                     Write-Verbose "Property '$_'"
 
@@ -159,7 +159,7 @@ Function ConvertTo-MatrixADNamesHC {
                         End    = $names[0]
                     }
 
-                    if (($original.Begin -eq $BeginReplace) -and ($Begin)) { 
+                    if (($original.Begin -eq $BeginReplace) -and ($Begin)) {
                         $converted.Begin = $Begin
                     }
                     if (($original.Middle -eq $MiddleReplace) -and ($Middle)) {
@@ -197,20 +197,20 @@ Function ConvertTo-MatrixAclHC {
         Convert the Excel sheet 'Permissions' to permission objects.
 
     .DESCRIPTION
-        Convert the Excel sheet 'Permissions' to permission objects, by using 
+        Convert the Excel sheet 'Permissions' to permission objects, by using
         the 'GroupName' and 'SiteCode' defined in the Excel sheet 'Settings'.
 
-        Each object will contain the complete 'SamAccountName', the folder 
-        'Path' on the local machine and the type of access ('ACE') to that 
+        Each object will contain the complete 'SamAccountName', the folder
+        'Path' on the local machine and the type of access ('ACE') to that
         folder.
 
     .PARAMETER NonHeaderRows
         The objects coming from the Excel sheet 'Permissions', as retrieved by
-        Import-Excel, but without the header columns. The header columns are 
+        Import-Excel, but without the header columns. The header columns are
         replaced with ADObjects.
 
     .PARAMETER ADObjects
-        A hashtable containing the property name and the SamAccountName 
+        A hashtable containing the property name and the SamAccountName
         belonging to that column.
 #>
 
@@ -249,7 +249,7 @@ Function ConvertTo-MatrixAclHC {
                     $Obj.Parent = $true
                 }
 
-                $Props = $N.PSObject.Properties.Where( { 
+                $Props = $N.PSObject.Properties.Where( {
                         $_.Name -ne $FirstProperty })
 
                 $ACL = @{}
@@ -261,9 +261,9 @@ Function ConvertTo-MatrixAclHC {
                     $Props.Foreach( {
                             if ($Ace = $_.Value) {
                                 <#
-                                there tests are done after building the matrix 
-                                because AD Object names can be duplicate after 
-                                they are generated with a manual entry in the 
+                                there tests are done after building the matrix
+                                because AD Object names can be duplicate after
+                                they are generated with a manual entry in the
                                 column header
                             #>
                                 if (-not ($SamAccountName = $ADObjects.($_.Name).SamAccountName)) {
@@ -295,8 +295,8 @@ Function Format-PermissionsStringsHC {
         String manipulations on values in the 'Permissions' sheet.
 
     .DESCRIPTION
-        Remove leading and trailing spaces from strings, remove leading and 
-        trailing slashes from the path locations, change lower case permission 
+        Remove leading and trailing spaces from strings, remove leading and
+        trailing slashes from the path locations, change lower case permission
         characters to upper case, ...
 
     .PARAMETER Permissions
@@ -339,8 +339,8 @@ Function Format-SettingStringsHC {
         String manipulations on values in the 'Settings' sheet.
 
     .DESCRIPTION
-        Remove leading and trailing spaces from strings. Add the domain name to 
-        the ComputerName property when it's not there. Remove trailing slashes 
+        Remove leading and trailing spaces from strings. Add the domain name to
+        the ComputerName property when it's not there. Remove trailing slashes
         from the Path. ...
 
         Spaces are converted to NULL values.
@@ -360,8 +360,8 @@ Function Format-SettingStringsHC {
         $Obj = [ordered]@{}
 
         ($Settings.PSObject.Properties).Foreach( {
-                $Value = if ($tmpVal = $_.Value) { 
-                    $tmpVal.ToString().Trim() 
+                $Value = if ($tmpVal = $_.Value) {
+                    $tmpVal.ToString().Trim()
                 }
                 else {
                     $null
@@ -478,12 +478,12 @@ Function Get-ExecutableMatrixHC {
         Retrieve only those matrix that are able to be executed.
 
     .DESCRIPTION
-        Filter out matrix that have a FatalError object in the File, 
-        Permissions or in the Settings object itself. Only those matrix that 
+        Filter out matrix that have a FatalError object in the File,
+        Permissions or in the Settings object itself. Only those matrix that
         are flawless can be executed to set permissions on folders.
 
     .PARAMETER From
-        One object for each file, containing the File, Settings and Permissions 
+        One object for each file, containing the File, Settings and Permissions
         properties.
 #>
 
@@ -641,34 +641,35 @@ Function Get-AdUserPrincipalNameHC {
             if ($adObject.Count -ge 2) {
                 throw "Multiple results found for name '$N': $($adObject.Name)"
             }
-    
+
             if (-not $adObject) {
                 $notFound += $N
                 Continue
             }
-    
+
             $adUsers = if ($adObject.ObjectClass -eq 'group') {
                 Get-ADGroupMember $adObject -Recursive
             }
             elseif ($adObject.ObjectClass -eq 'user') {
                 $adObject
             }
-    
-            $adUsers | Get-ADUser |
-            Where-Object { 
+
+            $adUsers | Get-ADUser -Properties Enabled, SamAccountName, Mail |
+            Where-Object {
+                ($_.Mail) -and
                 ($_.Enabled) -and
                 ($ExcludeSamAccountName -notContains $_.SamAccountName)
             } |
             Select-Object -ExpandProperty 'UserPrincipalName'
         }
-    
+
         @{
             notFound          = $notFound
             userPrincipalName = $result | Sort-Object -Unique
-        }    
+        }
     }
     catch {
-        throw "Failed converting email address or SamAccountName to userPrincipalName: $_"       
+        throw "Failed converting email address or SamAccountName to userPrincipalName: $_"
     }
 }
 Function Test-AclEqualHC {
@@ -773,7 +774,7 @@ Function Test-AdObjectsHC {
             }
         }
         #endregion
-    
+
         #region AD Object name missing
         if (@(($ADObjects.Values.SamAccountName).Where( { -not $_ })).Count -ge 1) {
             [PSCustomObject]@{
@@ -798,13 +799,13 @@ Function Test-ExpandedMatrixHC {
         Test the validity of the content of a matrix once it's expanded.
 
     .PARAMETER Matrix
-        The single complete matrix containing the folder names and the 
+        The single complete matrix containing the folder names and the
         permissions on them as generated by 'ConvertTo-MatrixHC'.
 
     .PARAMETER ADObjects
-        A collection of all the objects used in the matrix containing the 
-        details about each object. Is it found in the active directory? Does it 
-        have user accounts as member that are not place holder accounts? ... As 
+        A collection of all the objects used in the matrix containing the
+        details about each object. Is it found in the active directory? Does it
+        have user accounts as member that are not place holder accounts? ... As
         generated by 'Get-ADObjectDetailHC'.
 #>
 
@@ -821,7 +822,7 @@ Function Test-ExpandedMatrixHC {
 
     Try {
         #region Check if the matrix contains objects not available in ADObjects
-        $Matrix.ACL.Keys.Where( 
+        $Matrix.ACL.Keys.Where(
             { $ADObject.samAccountName -notContains $_ }
         ).Foreach( {
                 throw "Unknown AD Object '$_' found in the matrix."
@@ -829,11 +830,11 @@ Function Test-ExpandedMatrixHC {
         #endregion
 
         #region Non existing AD Objects
-        if ($ADObjectsUnknown = $ADObject.Where( 
+        if ($ADObjectsUnknown = $ADObject.Where(
                 { -not $_.adObject }
             ).samAccountName
         ) {
-            if ($result = $ADObjectsUnknown.Where( 
+            if ($result = $ADObjectsUnknown.Where(
                     { $Matrix.ACL.Keys -contains $_ })
             ) {
                 [PSCustomObject]@{
@@ -847,7 +848,7 @@ Function Test-ExpandedMatrixHC {
         #endregion
 
         #region Empty AD groups
-        $emptyAdGroups = foreach ($group in $ADObject.Where( 
+        $emptyAdGroups = foreach ($group in $ADObject.Where(
                 { $_.adObject.ObjectClass -eq 'group' })
         ) {
             $groupMembers = @($group.adGroupMember.SamAccountName).Where( {
@@ -859,7 +860,7 @@ Function Test-ExpandedMatrixHC {
         }
 
         if ($emptyAdGroups) {
-            if ($result = $emptyAdGroups.Where( 
+            if ($result = $emptyAdGroups.Where(
                     { $Matrix.ACL.Keys -contains $_ })
             ) {
                 [PSCustomObject]@{
@@ -875,7 +876,7 @@ Function Test-ExpandedMatrixHC {
         #region Inaccessible folders
         $validAdObjects = $ADObject.Where( {
                 (
-                    ($_.ADObject.ObjectClass -eq 'group') -and 
+                    ($_.ADObject.ObjectClass -eq 'group') -and
                     ($emptyAdGroups -notContains $_.samAccountName)
                 ) -or
                 ($_.ADObject.ObjectClass -eq 'user')
@@ -963,14 +964,14 @@ Function Test-FormDataHC {
             #region Mandatory property
             $mandatoryProperties = @(
                 'MatrixFormStatus',
-                'MatrixCategoryName' , 
-                'MatrixSubCategoryName' , 
+                'MatrixCategoryName' ,
+                'MatrixSubCategoryName' ,
                 'MatrixResponsible',
-                'MatrixFolderDisplayName' , 
-                'MatrixFolderPath'  
+                'MatrixFolderDisplayName' ,
+                'MatrixFolderPath'
             )
 
-            if ($MissingProperty = $mandatoryProperties.Where( { 
+            if ($MissingProperty = $mandatoryProperties.Where( {
                         $Properties -notContains $_ })) {
                 return [PSCustomObject]@{
                     Type        = 'FatalError'
@@ -987,7 +988,7 @@ Function Test-FormDataHC {
 
                 #region Mandatory property value
                 if ($BlankProperty = $mandatoryPropertyValues.Where( {
-                            (-not ($FormData.$_)) -and 
+                            (-not ($FormData.$_)) -and
                             ($Properties -contains $_) })) {
                     return [PSCustomObject]@{
                         Type        = 'FatalError'
@@ -1010,8 +1011,8 @@ Function Test-MatrixPermissionsHC {
         Verify input for the Excel sheet 'Permissions'.
 
     .DESCRIPTION
-        Verify if all input in the Excel sheet 'Permissions' is correct. When 
-        incorrect input is detected an object is returned containing all the 
+        Verify if all input in the Excel sheet 'Permissions' is correct. When
+        incorrect input is detected an object is returned containing all the
         details about the issue.
 
         This test is best run before expanding the matrix. as it will gain time.

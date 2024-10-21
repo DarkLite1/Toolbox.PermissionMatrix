@@ -16,25 +16,26 @@ BeforeAll {
 
 Describe 'Get-AdUserPrincipalNameHC' {
     Context 'a user e-mail address is' {
-        It 'converted to the userPrincipalName for an enabled account' {
+        It 'converted to the userPrincipalName for an enabled account with mail address' {
             Mock Get-ADObject {
                 New-Object Microsoft.ActiveDirectory.Management.ADObject Identity -Property @{
                     SamAccountName = 'bob'
                     mail           = 'bob@mail.com'
                     ObjectClass    = 'user'
-                }                
+                }
             } -ModuleName $moduleName
             Mock Get-ADUser {
                 New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
                     SamAccountName    = 'bob'
+                    mail              = 'bob@mail.com'
                     Enabled           = $true
-                    UserPrincipalName = 'bob@contoso.com'
+                    UserPrincipalName = 'bobPrincipal@contoso.com'
                 }
             } -ModuleName $moduleName
 
             $actual = Get-AdUserPrincipalNameHC -Name 'bob@mail.com'
 
-            $actual.userPrincipalName | Should -Be 'bob@contoso.com'
+            $actual.userPrincipalName | Should -Be 'bobPrincipal@contoso.com'
             $actual.notFound | Should -BeNullOrEmpty
         }
         It 'not converted to the userPrincipalName when the account is not enabled' {
@@ -42,7 +43,7 @@ Describe 'Get-AdUserPrincipalNameHC' {
                 New-Object Microsoft.ActiveDirectory.Management.ADObject Identity -Property @{
                     mail        = 'bob@mail.com'
                     ObjectClass = 'user'
-                }                
+                }
             } -ModuleName $moduleName
             Mock Get-ADUser {
                 New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
@@ -63,16 +64,19 @@ Describe 'Get-AdUserPrincipalNameHC' {
                 New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
                     SamAccountName    = 'bob'
                     Enabled           = $true
+                    Mail              = 'bob@contoso.com'
                     UserPrincipalName = 'bob@contoso.com'
                 }
                 New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
                     SamAccountName    = 'mike'
                     Enabled           = $true
+                    Mail              = 'mike@contoso.com'
                     UserPrincipalName = 'mike@contoso.com'
                 }
                 New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
                     SamAccountName    = 'jack'
                     Enabled           = $false
+                    Mail              = 'jack@contoso.com'
                     UserPrincipalName = 'jack@contoso.com'
                 }
             )
@@ -82,7 +86,7 @@ Describe 'Get-AdUserPrincipalNameHC' {
                     SamAccountName = 'group'
                     mail           = 'group@mail.com'
                     ObjectClass    = 'group'
-                }                
+                }
             } -ModuleName $moduleName
             Mock Get-ADGroupMember {
                 $testAdUserObjects
@@ -103,21 +107,25 @@ Describe 'Get-AdUserPrincipalNameHC' {
                 New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
                     SamAccountName    = 'bond'
                     Enabled           = $true
+                    Mail              = 'bond@contoso.com'
                     UserPrincipalName = 'bond@contoso.com'
                 }
                 New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
                     SamAccountName    = 'bob'
                     Enabled           = $true
+                    Mail              = 'bob@contoso.com'
                     UserPrincipalName = 'bob@contoso.com'
                 }
                 New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
                     SamAccountName    = 'mike'
                     Enabled           = $true
+                    Mail              = 'mike@contoso.com'
                     UserPrincipalName = 'mike@contoso.com'
                 }
                 New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
                     SamAccountName    = 'jack'
                     Enabled           = $false
+                    Mail              = 'jack@contoso.com'
                     UserPrincipalName = 'jack@contoso.com'
                 }
             )
@@ -127,7 +135,7 @@ Describe 'Get-AdUserPrincipalNameHC' {
                     SamAccountName = 'group'
                     mail           = 'group@mail.com'
                     ObjectClass    = 'group'
-                }                
+                }
             } -ModuleName $moduleName
             Mock Get-ADGroupMember {
                 $testAdUserObjects
@@ -189,9 +197,9 @@ Describe 'Test-FormDataHC' {
                     MatrixFolderDisplayName = 'x'
                     MatrixFolderPath        = 'x'
                 }
-    
+
                 $testFormData.Remove($Name)
-                   
+
                 $testData = [PSCustomObject]$testFormData
 
                 $actual = Test-FormDataHC -FormData $testData
@@ -217,9 +225,9 @@ Describe 'Test-FormDataHC' {
                     MatrixFolderDisplayName = 'x'
                     MatrixFolderPath        = 'x'
                 }
-    
+
                 $testFormData.$Name = ''
-                   
+
                 $testData = [PSCustomObject]$testFormData
 
                 $actual = Test-FormDataHC -FormData $testData
@@ -247,9 +255,9 @@ Describe 'Test-FormDataHC' {
                     MatrixFolderDisplayName = 'x'
                     MatrixFolderPath        = 'x'
                 }
-    
+
                 $testFormData.$Name = ''
-                   
+
                 $testData = [PSCustomObject]$testFormData
 
                 $actual = Test-FormDataHC -FormData $testData
@@ -271,7 +279,7 @@ Describe 'ConvertTo-AceHC' {
 
         $actual = ConvertTo-AceHC -Type L -Name $env:USERNAME
 
-        $actual | ConvertTo-Json | 
+        $actual | ConvertTo-Json |
         Should -BeExactly ($expected | ConvertTo-Json)
     }
     It 'W for Write' {
@@ -295,7 +303,7 @@ Describe 'ConvertTo-AceHC' {
 
         $actual = ConvertTo-AceHC -Type W -Name $env:USERNAME
 
-        $actual | ConvertTo-Json | 
+        $actual | ConvertTo-Json |
         Should -BeExactly ($expected | ConvertTo-Json)
     }
     It 'R for Read' {
@@ -309,7 +317,7 @@ Describe 'ConvertTo-AceHC' {
 
         $actual = ConvertTo-AceHC -Type R -Name $env:USERNAME
 
-        $actual | ConvertTo-Json | 
+        $actual | ConvertTo-Json |
         Should -BeExactly ($expected | ConvertTo-Json)
     }
     It 'F for FullControl' {
@@ -324,7 +332,7 @@ Describe 'ConvertTo-AceHC' {
 
         $actual = ConvertTo-AceHC -Type F -Name $env:USERNAME
 
-        $actual | ConvertTo-Json | 
+        $actual | ConvertTo-Json |
         Should -BeExactly ($expected | ConvertTo-Json)
     }
     It 'M for Modify' {
@@ -338,7 +346,7 @@ Describe 'ConvertTo-AceHC' {
 
         $actual = ConvertTo-AceHC -Type M -Name $env:USERNAME
 
-        $actual | ConvertTo-Json | 
+        $actual | ConvertTo-Json |
         Should -BeExactly ($expected | ConvertTo-Json)
     }
 }
@@ -371,7 +379,7 @@ Describe 'ConvertTo-MatrixADNamesHC' {
                                 Middle = ''
                                 End    = 'Manager'
                             }
-                        } 
+                        }
                     }
                 }
                 @{
@@ -408,22 +416,22 @@ Describe 'ConvertTo-MatrixADNamesHC' {
                     MiddleReplace = 'B'
                 }
                 $actual = ConvertTo-MatrixADNamesHC @testParams
-                    
-                $actual.SamAccountName | 
+
+                $actual.SamAccountName |
                 Should -BeExactly $expected.SamAccountName
 
-                $actual.P2.Original.Begin | 
+                $actual.P2.Original.Begin |
                 Should -BeExactly $expected.P2.Original.Begin
-                $actual.P2.Original.Middle | 
+                $actual.P2.Original.Middle |
                 Should -BeExactly $expected.P2.Original.Middle
-                $actual.P2.Original.End | 
+                $actual.P2.Original.End |
                 Should -BeExactly $expected.P2.Original.End
 
-                $actual.P2.Converted.Begin | 
+                $actual.P2.Converted.Begin |
                 Should -BeExactly $expected.P2.Converted.Begin
-                $actual.P2.Converted.Middle | 
+                $actual.P2.Converted.Middle |
                 Should -BeExactly $expected.P2.Converted.Middle
-                $actual.P2.Converted.End | 
+                $actual.P2.Converted.End |
                 Should -BeExactly $expected.P2.Converted.End
             }
         }
@@ -449,7 +457,7 @@ Describe 'ConvertTo-MatrixADNamesHC' {
                                 Middle = 'MIDDLE'
                                 End    = 'Manager'
                             }
-                        } 
+                        }
                     }
                 }
                 @{
@@ -472,7 +480,7 @@ Describe 'ConvertTo-MatrixADNamesHC' {
                                 Middle = 'Consultant'
                                 End    = 'Manager'
                             }
-                        } 
+                        }
                     }
                 }
                 @{
@@ -495,7 +503,7 @@ Describe 'ConvertTo-MatrixADNamesHC' {
                                 Middle = 'Consultant'
                                 End    = 'Manager'
                             }
-                        } 
+                        }
                     }
                 }
             )
@@ -515,21 +523,21 @@ Describe 'ConvertTo-MatrixADNamesHC' {
                 }
                 $actual = ConvertTo-MatrixADNamesHC @testParams
 
-                $actual.SamAccountName | 
+                $actual.SamAccountName |
                 Should -BeExactly $expected.SamAccountName
 
-                $actual.P2.Original.Begin | 
+                $actual.P2.Original.Begin |
                 Should -BeExactly $expected.P2.Original.Begin
-                $actual.P2.Original.Middle | 
+                $actual.P2.Original.Middle |
                 Should -BeExactly $expected.P2.Original.Middle
-                $actual.P2.Original.End | 
+                $actual.P2.Original.End |
                 Should -BeExactly $expected.P2.Original.End
 
-                $actual.P2.Converted.Begin | 
+                $actual.P2.Converted.Begin |
                 Should -BeExactly $expected.P2.Converted.Begin
-                $actual.P2.Converted.Middle | 
+                $actual.P2.Converted.Middle |
                 Should -BeExactly $expected.P2.Converted.Middle
-                $actual.P2.Converted.End | 
+                $actual.P2.Converted.End |
                 Should -BeExactly $expected.P2.Converted.End
             }
         }
@@ -560,7 +568,7 @@ Describe 'ConvertTo-MatrixAclHC' {
                 )
                 ADObjects     = @{
                     'P2' = @{SamAccountName = 'bob' }`
-                    
+
                 }
                 Expected      = 'AD Object name is required'
             }
@@ -579,14 +587,14 @@ Describe 'ConvertTo-MatrixAclHC' {
         )
 
         It '<TestName>' -TestCases $TestCases {
-            { 
+            {
                 $testParams = @{
-                    NonHeaderRows = $NonHeaderRows 
+                    NonHeaderRows = $NonHeaderRows
                     ADObjects     = $ADObjects
                 }
                 ConvertTo-MatrixAclHC @testParams
             } |
-            Should -Throw -PassThru | 
+            Should -Throw -PassThru |
             Select-Object -ExpandProperty Exception |
             Should -BeLike "*$expected*"
         }
@@ -607,9 +615,9 @@ Describe 'ConvertTo-MatrixAclHC' {
         )
 
         It '<TestName>' -TestCases $TestCases {
-            { 
+            {
                 $testParams = @{
-                    NonHeaderRows = $NonHeaderRows 
+                    NonHeaderRows = $NonHeaderRows
                     ADObjects     = $ADObjects
                 }
                 ConvertTo-MatrixAclHC @testParams
@@ -663,12 +671,12 @@ Describe 'ConvertTo-MatrixAclHC' {
 
         It '<TestName>' -TestCases $TestCases {
             $testParams = @{
-                NonHeaderRows = $NonHeaderRows 
+                NonHeaderRows = $NonHeaderRows
                 ADObjects     = $ADObjects
             }
             $actual = ConvertTo-MatrixAclHC @testParams
 
-            ($actual | ConvertTo-Json) | 
+            ($actual | ConvertTo-Json) |
             Should -BeExactly ($expected | ConvertTo-Json)
         }
     }
@@ -731,15 +739,15 @@ Describe 'ConvertTo-MatrixAclHC' {
 
         It '<TestName>' -TestCases $TestCases {
             $testParams = @{
-                NonHeaderRows = $NonHeaderRows 
+                NonHeaderRows = $NonHeaderRows
                 ADObjects     = $ADObjects
             }
             $actual = ConvertTo-MatrixAclHC @testParams
 
-            $actual | ConvertTo-Json | 
+            $actual | ConvertTo-Json |
             Should -BeExactly ($expected | ConvertTo-Json)
         }
-    } 
+    }
     Context 'ignore is TRUE and ACL is empty when' {
         $TestCases = @(
             @{
@@ -859,12 +867,12 @@ Describe 'ConvertTo-MatrixAclHC' {
 
         It '<TestName>' -TestCases $TestCases {
             $testParams = @{
-                NonHeaderRows = $NonHeaderRows 
+                NonHeaderRows = $NonHeaderRows
                 ADObjects     = $ADObjects
             }
             $actual = ConvertTo-MatrixAclHC @testParams
 
-            $actual | ConvertTo-Json | 
+            $actual | ConvertTo-Json |
             Should -BeExactly ($expected | ConvertTo-Json)
         }
     }
@@ -1072,7 +1080,7 @@ Describe 'Format-SettingStringsHC' {
                     Status       = 'Enabled'
                     Action       = 'Fix'
                 }
-            } 
+            }
 
             $TestName = 'convert blanks to NULL'
             @{
@@ -1104,9 +1112,9 @@ Describe 'Format-SettingStringsHC' {
                     $Settings,
                     $expected
                 )
-                
+
                 $actual = Format-SettingStringsHC -Settings $Settings
-                $actual | ConvertTo-Json | 
+                $actual | ConvertTo-Json |
                 Should -BeExactly ($expected | ConvertTo-Json)
             }
         }
@@ -1118,7 +1126,7 @@ Describe 'Format-SettingStringsHC' {
                 )
 
                 $actual = $Settings | Format-SettingStringsHC
-                $actual | ConvertTo-Json | 
+                $actual | ConvertTo-Json |
                 Should -BeExactly ($expected | ConvertTo-Json)
             }
         }
@@ -1237,7 +1245,7 @@ Describe 'Get-DefaultAclHC' {
             )
 
             $actual = Get-DefaultAclHC -Sheet $DefaultsFile
-            $actual | ConvertTo-Json | 
+            $actual | ConvertTo-Json |
             Should -BeExactly ($expected | ConvertTo-Json)
         }
     }
@@ -1326,7 +1334,7 @@ Describe 'Get-ExecutableMatrixHC' {
             )
 
             $actual = Get-ExecutableMatrixHC -From $testFile
-            $actual | ConvertTo-Json | 
+            $actual | ConvertTo-Json |
             Should -BeExactly ($expected | ConvertTo-Json)
         }
         It "when one matrix in the same file has a FatalError but the others don't" {
@@ -1696,7 +1704,7 @@ Describe 'Test-AclIsInheritedOnlyHC' {
             Test-AclIsInheritedOnlyHC -Acl $testAcl | Should -BeFalse
         }
     }
-    
+
 }
 Describe 'Test-ExpandedMatrixHC' {
     Context 'a terminating error is thrown when' {
@@ -1704,10 +1712,10 @@ Describe 'Test-ExpandedMatrixHC' {
             $testParams = @{
                 Matrix   = @(
                     [PSCustomObject]@{
-                        ACL = @{'bob' = 'L'; 'lswagger' = 'L' } 
+                        ACL = @{'bob' = 'L'; 'lswagger' = 'L' }
                     }
                     [PSCustomObject]@{
-                        ACL = @{'bob' = 'L' } 
+                        ACL = @{'bob' = 'L' }
                     }
                 )
                 ADObject = @{
@@ -1717,7 +1725,7 @@ Describe 'Test-ExpandedMatrixHC' {
                 }
             }
 
-            { Test-ExpandedMatrixHC @testParams } | 
+            { Test-ExpandedMatrixHC @testParams } |
             Should -Throw -ExpectedMessage "*Unknown AD Object 'lswagger'*"
         }
     }
@@ -1728,17 +1736,17 @@ Describe 'Test-ExpandedMatrixHC' {
                 Name        = 'Unknown AD object'
                 Description = "Every AD object defined in the header row needs to exist before the matrix can be correctly executed."
                 Value       = $null
-            } 
+            }
         }
         Context 'return a FatalError object when' {
             It 'a SamAccountName in the matrix is not found in AD' {
                 $testParams = @{
                     Matrix   = @(
                         [PSCustomObject]@{
-                            ACL = @{'lswagger' = 'L' } 
+                            ACL = @{'lswagger' = 'L' }
                         }
                         [PSCustomObject]@{
-                            ACL = @{'bob' = 'L' } 
+                            ACL = @{'bob' = 'L' }
                         }
                     )
                     ADObject = @(
@@ -1757,19 +1765,19 @@ Describe 'Test-ExpandedMatrixHC' {
 
                 $expected.Value = @('lswagger')
 
-                $actual = Test-ExpandedMatrixHC @testParams | 
+                $actual = Test-ExpandedMatrixHC @testParams |
                 Where-Object Name -EQ $expected.Name
-                $actual | ConvertTo-Json | 
+                $actual | ConvertTo-Json |
                 Should -BeExactly ($expected | ConvertTo-Json)
             }
             It 'multiple SamAccountNames in the matrix are not found in AD' {
                 $testParams = @{
                     Matrix   = @(
                         [PSCustomObject]@{
-                            ACL = @{'lswagger' = 'L' } 
+                            ACL = @{'lswagger' = 'L' }
                         }
                         [PSCustomObject]@{
-                            ACL = @{'bob' = 'L' } 
+                            ACL = @{'bob' = 'L' }
                         }
                     )
                     ADObject = @(
@@ -1788,22 +1796,22 @@ Describe 'Test-ExpandedMatrixHC' {
 
                 $expected.Value = @('lswagger', 'bob')
 
-                $actual = Test-ExpandedMatrixHC @testParams | 
+                $actual = Test-ExpandedMatrixHC @testParams |
                 Where-Object Name -EQ $expected.Name
 
-                $actual | ConvertTo-Json | 
+                $actual | ConvertTo-Json |
                 Should -BeExactly ($expected | ConvertTo-Json)
             }
-        } 
+        }
         Context 'return no output when' {
             It 'all AD objects exist in AD' {
                 $testParams = @{
                     Matrix   = @(
                         [PSCustomObject]@{
-                            ACL = @{'lswagger' = 'L' } 
+                            ACL = @{'lswagger' = 'L' }
                         }
                         [PSCustomObject]@{
-                            ACL = @{'bob' = 'L' } 
+                            ACL = @{'bob' = 'L' }
                         }
                     )
                     ADObject = @(
@@ -1820,7 +1828,7 @@ Describe 'Test-ExpandedMatrixHC' {
                     )
                 }
 
-                Test-ExpandedMatrixHC @testParams | 
+                Test-ExpandedMatrixHC @testParams |
                 Where-Object Name -EQ $expected.Name |
                 Should -BeNullOrEmpty
             }
@@ -1841,10 +1849,10 @@ Describe 'Test-ExpandedMatrixHC' {
                     Matrix   = @(
                         [PSCustomObject]@{
                             ACL = @{
-                                'lswagger' = 'L'  
-                                'group1'   = 'L' 
-                                'group2'   = 'L' 
-                            } 
+                                'lswagger' = 'L'
+                                'group1'   = 'L'
+                                'group2'   = 'L'
+                            }
                         }
                     )
                     ADObject = @(
@@ -1857,15 +1865,15 @@ Describe 'Test-ExpandedMatrixHC' {
                             samAccountName = 'group1'
                             adObject       = @{ObjectClass = 'group' }
                             adGroupMember  = @(
-                                @{ 
+                                @{
                                     ObjectClass    = 'user'
                                     Name           = 'Jean Luc Picard'
-                                    SamAccountName = 'picard' 
+                                    SamAccountName = 'picard'
                                 }
-                                @{ 
+                                @{
                                     ObjectClass    = 'user'
                                     Name           = 'James T. Kirk'
-                                    SamAccountName = 'kirk' 
+                                    SamAccountName = 'kirk'
                                 }
                             )
                         }
@@ -1879,21 +1887,21 @@ Describe 'Test-ExpandedMatrixHC' {
 
                 $expected.Value = @('group2')
 
-                $actual = Test-ExpandedMatrixHC @testParams | 
+                $actual = Test-ExpandedMatrixHC @testParams |
                 Where-Object Name -EQ $expected.Name
-                
-                $actual | ConvertTo-Json | 
+
+                $actual | ConvertTo-Json |
                 Should -BeExactly ($expected | ConvertTo-Json)
-            } 
+            }
             It 'a matrix contains multiple groups without members' {
                 $testParams = @{
                     Matrix   = @(
                         [PSCustomObject]@{
                             ACL = @{
-                                'lswagger' = 'L'  
-                                'group1'   = 'L' 
-                                'group2'   = 'L' 
-                            } 
+                                'lswagger' = 'L'
+                                'group1'   = 'L'
+                                'group2'   = 'L'
+                            }
                         }
                     )
                     ADObject = @(
@@ -1917,10 +1925,10 @@ Describe 'Test-ExpandedMatrixHC' {
 
                 $expected.Value = @('group1', 'group2')
 
-                $actual = Test-ExpandedMatrixHC @testParams | 
+                $actual = Test-ExpandedMatrixHC @testParams |
                 Where-Object Name -EQ $expected.Name
-                
-                $actual | ConvertTo-Json | 
+
+                $actual | ConvertTo-Json |
                 Should -BeExactly ($expected | ConvertTo-Json)
             }
             It 'a matrix contains a group with only excluded accounts' {
@@ -1928,10 +1936,10 @@ Describe 'Test-ExpandedMatrixHC' {
                     Matrix   = @(
                         [PSCustomObject]@{
                             ACL = @{
-                                'group1' = 'L' 
-                                'group2' = 'L' 
-                                'group3' = 'L' 
-                            } 
+                                'group1' = 'L'
+                                'group2' = 'L'
+                                'group3' = 'L'
+                            }
                         }
                     )
                     ADObject = @(
@@ -1939,15 +1947,15 @@ Describe 'Test-ExpandedMatrixHC' {
                             samAccountName = 'group1'
                             adObject       = @{ObjectClass = 'group' }
                             adGroupMember  = @(
-                                @{ 
+                                @{
                                     ObjectClass    = 'user'
                                     Name           = 'Jean Luc Picard'
-                                    SamAccountName = 'picard' 
+                                    SamAccountName = 'picard'
                                 }
-                                @{ 
+                                @{
                                     ObjectClass    = 'user'
                                     Name           = 'James T. Kirk'
-                                    SamAccountName = 'kirk' 
+                                    SamAccountName = 'kirk'
                                 }
                             )
                         }
@@ -1955,15 +1963,15 @@ Describe 'Test-ExpandedMatrixHC' {
                             samAccountName = 'group2'
                             adObject       = @{ObjectClass = 'group' }
                             adGroupMember  = @(
-                                @{ 
+                                @{
                                     ObjectClass    = 'user'
                                     Name           = 'Jean Luc Picard'
-                                    SamAccountName = 'picard' 
+                                    SamAccountName = 'picard'
                                 }
-                                @{ 
+                                @{
                                     ObjectClass    = 'user'
                                     Name           = 'Bob'
-                                    SamAccountName = 'bob' 
+                                    SamAccountName = 'bob'
                                 }
                             )
                         }
@@ -1977,12 +1985,12 @@ Describe 'Test-ExpandedMatrixHC' {
 
                 $expected.Value = @('group1', 'group3')
 
-                $actual = Test-ExpandedMatrixHC @testParams -ExcludedSamAccountName 'picard', 'kirk' | 
+                $actual = Test-ExpandedMatrixHC @testParams -ExcludedSamAccountName 'picard', 'kirk' |
                 Where-Object Name -EQ $expected.Name
-                
-                $actual | ConvertTo-Json | 
+
+                $actual | ConvertTo-Json |
                 Should -BeExactly ($expected | ConvertTo-Json)
-            } 
+            }
         }
         Context 'return no output when' {
             It 'a matrix contains only a user account as member' {
@@ -1990,7 +1998,7 @@ Describe 'Test-ExpandedMatrixHC' {
                     Matrix   = @(
                         [PSCustomObject]@{
                             ACL = @{
-                                'lswagger' = 'L'  
+                                'lswagger' = 'L'
                             }
                         }
                     )
@@ -2003,7 +2011,7 @@ Describe 'Test-ExpandedMatrixHC' {
                     )
                 }
 
-                Test-ExpandedMatrixHC @testParams | 
+                Test-ExpandedMatrixHC @testParams |
                 Where-Object Name -EQ $expected.Name
                 Should -BeNullOrEmpty
             }
@@ -2012,7 +2020,7 @@ Describe 'Test-ExpandedMatrixHC' {
                     Matrix   = @(
                         [PSCustomObject]@{
                             ACL = @{
-                                'group1' = 'L'  
+                                'group1' = 'L'
                             }
                         }
                     )
@@ -2021,17 +2029,17 @@ Describe 'Test-ExpandedMatrixHC' {
                             samAccountName = 'group1'
                             adObject       = @{ObjectClass = 'group' }
                             adGroupMember  = @(
-                                @{ 
+                                @{
                                     ObjectClass    = 'user'
                                     Name           = 'Jean Luc Picard'
-                                    SamAccountName = 'picard' 
+                                    SamAccountName = 'picard'
                                 }
                             )
                         }
                     )
                 }
 
-                Test-ExpandedMatrixHC @testParams | 
+                Test-ExpandedMatrixHC @testParams |
                 Where-Object Name -EQ $expected.Name
                 Should -BeNullOrEmpty
             }
@@ -2040,7 +2048,7 @@ Describe 'Test-ExpandedMatrixHC' {
                     Matrix   = @(
                         [PSCustomObject]@{
                             ACL = @{
-                                'lswagger' = 'L'  
+                                'lswagger' = 'L'
                             }
                         }
                     )
@@ -2058,7 +2066,7 @@ Describe 'Test-ExpandedMatrixHC' {
                     )
                 }
 
-                Test-ExpandedMatrixHC @testParams | 
+                Test-ExpandedMatrixHC @testParams |
                 Where-Object Name -EQ $expected.Name
                 Should -BeNullOrEmpty
             }
@@ -2083,11 +2091,11 @@ Describe 'Test-ExpandedMatrixHC' {
                     )
                 }
 
-                Test-ExpandedMatrixHC @testParams | 
+                Test-ExpandedMatrixHC @testParams |
                 Where-Object Name -EQ $expected.Name
                 Should -BeNullOrEmpty
             }
-        } 
+        }
     }
     Context 'Inaccessible folders' {
         BeforeAll {
@@ -2104,7 +2112,7 @@ Describe 'Test-ExpandedMatrixHC' {
                     Matrix   = @(
                         [PSCustomObject]@{
                             Path = 'folder'
-                            ACL  = @{'group1' = 'L' } 
+                            ACL  = @{'group1' = 'L' }
                         }
                     )
                     ADObject = @(
@@ -2118,10 +2126,10 @@ Describe 'Test-ExpandedMatrixHC' {
 
                 $expected.Value = 'folder'
 
-                $actual = Test-ExpandedMatrixHC @testParams | 
+                $actual = Test-ExpandedMatrixHC @testParams |
                 Where-Object Name -EQ $expected.Name
-                
-                $actual | ConvertTo-Json | 
+
+                $actual | ConvertTo-Json |
                 Should -BeExactly ($expected | ConvertTo-Json)
             }
             It 'a folder ACL contains multiple groups where no user account is member' {
@@ -2130,9 +2138,9 @@ Describe 'Test-ExpandedMatrixHC' {
                         [PSCustomObject]@{
                             Path = 'folder'
                             ACL  = @{
-                                'group1' = 'L' 
-                                'group2' = 'L' 
-                            } 
+                                'group1' = 'L'
+                                'group2' = 'L'
+                            }
                         }
                     )
                     ADObject = @(
@@ -2151,10 +2159,10 @@ Describe 'Test-ExpandedMatrixHC' {
 
                 $expected.Value = 'folder'
 
-                $actual = Test-ExpandedMatrixHC @testParams | 
+                $actual = Test-ExpandedMatrixHC @testParams |
                 Where-Object Name -EQ $expected.Name
-                
-                $actual | ConvertTo-Json | 
+
+                $actual | ConvertTo-Json |
                 Should -BeExactly ($expected | ConvertTo-Json)
             }
         }
@@ -2165,9 +2173,9 @@ Describe 'Test-ExpandedMatrixHC' {
                         [PSCustomObject]@{
                             Path = 'folder'
                             ACL  = @{
-                                'group1' = 'L' 
-                                'group2' = 'L' 
-                            } 
+                                'group1' = 'L'
+                                'group2' = 'L'
+                            }
                         }
                     )
                     ADObject = @(
@@ -2180,29 +2188,29 @@ Describe 'Test-ExpandedMatrixHC' {
                             samAccountName = 'group2'
                             adObject       = @{ObjectClass = 'group' }
                             adGroupMember  = @(
-                                @{ 
+                                @{
                                     ObjectClass    = 'user'
                                     Name           = 'Jean Luc Picard'
-                                    SamAccountName = 'picard' 
+                                    SamAccountName = 'picard'
                                 }
                             )
                         }
                     )
                 }
 
-                Test-ExpandedMatrixHC @testParams | 
+                Test-ExpandedMatrixHC @testParams |
                 Where-Object Name -EQ $expected.Name |
                 Should -BeNullOrEmpty
-            } 
+            }
             It 'a folder ACL contains a user account' {
                 $testParams = @{
                     Matrix   = @(
                         [PSCustomObject]@{
                             Path = 'folder'
                             ACL  = @{
-                                'group1'   = 'L' 
-                                'lswagger' = 'L' 
-                            } 
+                                'group1'   = 'L'
+                                'lswagger' = 'L'
+                            }
                         }
                     )
                     ADObject = @(
@@ -2219,7 +2227,7 @@ Describe 'Test-ExpandedMatrixHC' {
                     )
                 }
 
-                Test-ExpandedMatrixHC @testParams | 
+                Test-ExpandedMatrixHC @testParams |
                 Where-Object Name -EQ $expected.Name |
                 Should -BeNullOrEmpty
             }
@@ -2228,7 +2236,7 @@ Describe 'Test-ExpandedMatrixHC' {
                     Matrix   = @(
                         [PSCustomObject]@{
                             Path = 'folder'
-                            ACL  = @{} 
+                            ACL  = @{}
                         }
                     )
                     ADObject = @(
@@ -2245,10 +2253,10 @@ Describe 'Test-ExpandedMatrixHC' {
                     )
                 }
 
-                Test-ExpandedMatrixHC @testParams | 
+                Test-ExpandedMatrixHC @testParams |
                 Where-Object Name -EQ $expected.Name |
                 Should -BeNullOrEmpty
-            } 
+            }
         }
     }
     Context 'Duplicate AD objects between matrix and default' {
@@ -2267,9 +2275,9 @@ Describe 'Test-ExpandedMatrixHC' {
                         [PSCustomObject]@{
                             Path = 'folder'
                             ACL  = @{
-                                'group1'   = 'L' 
-                                'lswagger' = 'L' 
-                            } 
+                                'group1'   = 'L'
+                                'lswagger' = 'L'
+                            }
                         }
                     )
                     ADObject   = @(
@@ -2286,13 +2294,13 @@ Describe 'Test-ExpandedMatrixHC' {
                     )
                     DefaultAcl = @{'group1' = 'R' }
                 }
-                
+
                 $expected.Value = @('group1')
 
-                $actual = Test-ExpandedMatrixHC @testParams | 
-                Where-Object Name -EQ $expected.Name 
-                
-                $actual | ConvertTo-Json | 
+                $actual = Test-ExpandedMatrixHC @testParams |
+                Where-Object Name -EQ $expected.Name
+
+                $actual | ConvertTo-Json |
                 Should -BeExactly ($expected | ConvertTo-Json)
             }
             It 'multiple duplicates are found' {
@@ -2301,9 +2309,9 @@ Describe 'Test-ExpandedMatrixHC' {
                         [PSCustomObject]@{
                             Path = 'folder'
                             ACL  = @{
-                                'group1'   = 'L' 
-                                'lswagger' = 'L' 
-                            } 
+                                'group1'   = 'L'
+                                'lswagger' = 'L'
+                            }
                         }
                     )
                     ADObject   = @(
@@ -2320,13 +2328,13 @@ Describe 'Test-ExpandedMatrixHC' {
                     )
                     DefaultAcl = @{'group1' = 'R' ; 'lswagger' = 'R' }
                 }
-                
+
                 $expected.Value = @('lswagger', 'group1')
 
-                $actual = Test-ExpandedMatrixHC @testParams | 
-                Where-Object Name -EQ $expected.Name 
-                
-                $actual | ConvertTo-Json | 
+                $actual = Test-ExpandedMatrixHC @testParams |
+                Where-Object Name -EQ $expected.Name
+
+                $actual | ConvertTo-Json |
                 Should -BeExactly ($expected | ConvertTo-Json)
             }
         }
@@ -2337,9 +2345,9 @@ Describe 'Test-ExpandedMatrixHC' {
                         [PSCustomObject]@{
                             Path = 'folder'
                             ACL  = @{
-                                'group1'   = 'L' 
-                                'lswagger' = 'L' 
-                            } 
+                                'group1'   = 'L'
+                                'lswagger' = 'L'
+                            }
                         }
                     )
                     ADObject   = @(
@@ -2356,8 +2364,8 @@ Describe 'Test-ExpandedMatrixHC' {
                     )
                     DefaultAcl = @{'a' = 'R' ; 'b' = 'R' }
                 }
-                
-                Test-ExpandedMatrixHC @testParams | 
+
+                Test-ExpandedMatrixHC @testParams |
                 Where-Object Name -EQ $expected.Name |
                 Should -BeNullOrEmpty
             }
@@ -2367,9 +2375,9 @@ Describe 'Test-ExpandedMatrixHC' {
                         [PSCustomObject]@{
                             Path = 'folder'
                             ACL  = @{
-                                'group1'   = 'L' 
-                                'lswagger' = 'L' 
-                            } 
+                                'group1'   = 'L'
+                                'lswagger' = 'L'
+                            }
                         }
                     )
                     ADObject   = @(
@@ -2386,8 +2394,8 @@ Describe 'Test-ExpandedMatrixHC' {
                     )
                     DefaultAcl = @{}
                 }
-                
-                Test-ExpandedMatrixHC @testParams | 
+
+                Test-ExpandedMatrixHC @testParams |
                 Where-Object Name -EQ $expected.Name |
                 Should -BeNullOrEmpty
             }
@@ -2744,7 +2752,7 @@ Describe 'Test-MatrixSettingHC' {
                     Description = "The value for 'JobsAtOnce' needs to be a number between 1 and 8."
                     Value       = 'a'
                 }
-            } 
+            }
             $TestName = 'the column header ComputerName is missing'
             @{
                 TestName = $TestName
