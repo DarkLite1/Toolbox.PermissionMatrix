@@ -66,18 +66,21 @@ Describe 'Get-AdUserPrincipalNameHC' {
                     Enabled           = $true
                     Mail              = 'bob@contoso.com'
                     UserPrincipalName = 'bob@contoso.com'
+                    ObjectClass       = 'user'
                 }
                 New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
                     SamAccountName    = 'mike'
                     Enabled           = $true
                     Mail              = 'mike@contoso.com'
                     UserPrincipalName = 'mike@contoso.com'
+                    ObjectClass       = 'user'
                 }
                 New-Object Microsoft.ActiveDirectory.Management.ADUser Identity -Property @{
                     SamAccountName    = 'jack'
                     Enabled           = $false
                     Mail              = 'jack@contoso.com'
                     UserPrincipalName = 'jack@contoso.com'
+                    ObjectClass       = 'user'
                 }
             )
 
@@ -162,7 +165,7 @@ Describe 'Get-AdUserPrincipalNameHC' {
             $actual.notFound | Should -Be 'bob@mail.com'
         }
     }
-} -ForEach @{ moduleName = $moduleName }
+} -ForEach @{ moduleName = $moduleName } -Tag test
 Describe 'Test-FormDataHC' {
     Context 'should create a FatalError object when' {
         It 'there is more than one object' {
@@ -1648,7 +1651,7 @@ Describe 'Test-AclEqualHC' {
             }
         }
     }
-} -Tag test
+}
 Describe 'Test-AclIsInheritedOnlyHC' {
     BeforeAll {
         $BuiltinAdmin = New-Object System.Security.AccessControl.FileSystemAccessRule(

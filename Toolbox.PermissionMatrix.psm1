@@ -552,54 +552,67 @@ function Get-AdUserPrincipalNameHC {
     .PARAMETER Name
         Can be an e-mail address or a SamAccountName of a user object or a
         group object in AD.
-#>
-
+    #>
     [CmdletBinding()]
-    [OutputType([HashTable])]
+    [OutputType([hashtable])]
     param(
         [Parameter(Mandatory)]
         [String[]]$Name,
-        [String[]]$ExcludeSamAccountName
+        
+        [String[]]$ExcludeSamAccountName = @()
     )
 
-    try {
-        $notFound = @()
+    process {
+        try {
+            # Use Generic Lists for massive speed improvements over +=
+            $NotFound = [System.Collections.Generic.List[string]]::new()
+            $UpnList = [System.Collections.Generic.List[string]]::new()
 
-        $result = foreach ($N in  ($Name | Sort-Object -Unique)) {
-            $adObject = Get-ADObject -Filter "ProxyAddresses -eq 'smtp:$N' -or SAMAccountName -eq '$N'" -Property 'mail'
+            $UniqueNames = $Name | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique
 
-            if ($adObject.Count -ge 2) {
-                throw "Multiple results found for name '$N': $($adObject.Name)"
+            foreach ($N in $UniqueNames) {
+                # Find the object in AD
+                $AdObject = Get-ADObject -Filter "ProxyAddresses -eq 'smtp:$N' -or SamAccountName -eq '$N'" -Property 'Mail'
+
+                if ($AdObject.Count -ge 2) {
+                    throw "Multiple results found for name '$N': $($AdObject.Name -join ', '). Skipping."
+                    
+                }
+
+                if (-not $AdObject) {
+                    $NotFound.Add($N)
+                    continue
+                }
+
+                $AdUsers = $null
+
+                if ($AdObject.ObjectClass -eq 'group') {
+                    $AdUsers = Get-ADGroupMember -Identity $AdObject -Recursive
+                }
+                elseif ($AdObject.ObjectClass -eq 'user') {
+                    $AdUsers = $AdObject
+                }
+
+                if ($AdUsers) {
+                    $AdUsers | Get-ADUser -Properties Enabled, Mail -ErrorAction SilentlyContinue | 
+                    ForEach-Object {
+                        if ($_.Mail -and $_.Enabled -and $_.SamAccountName -notin $ExcludeSamAccountName) {
+                            if (-not [string]::IsNullOrWhiteSpace($_.UserPrincipalName)) {
+                                $UpnList.Add($_.UserPrincipalName)
+                            }
+                        }
+                    }
+                }
             }
 
-            if (-not $adObject) {
-                $notFound += $N
-                continue
+            return @{
+                notFound          = @($NotFound)
+                userPrincipalName = @($UpnList | Sort-Object -Unique)
             }
-
-            $adUsers = if ($adObject.ObjectClass -eq 'group') {
-                Get-ADGroupMember $adObject -Recursive
-            }
-            elseif ($adObject.ObjectClass -eq 'user') {
-                $adObject
-            }
-
-            $adUsers | Get-ADUser -Properties Enabled, SamAccountName, Mail |
-            Where-Object {
-                ($_.Mail) -and
-                ($_.Enabled) -and
-                ($ExcludeSamAccountName -notcontains $_.SamAccountName)
-            } |
-            Select-Object -ExpandProperty 'UserPrincipalName'
         }
-
-        @{
-            notFound          = $notFound
-            userPrincipalName = $result | Sort-Object -Unique
+        catch {
+            throw "Failed converting email address or SamAccountName to userPrincipalName: $_"
         }
-    }
-    catch {
-        throw "Failed converting email address or SamAccountName to userPrincipalName: $_"
     }
 }
 function Test-AclEqualHC {
