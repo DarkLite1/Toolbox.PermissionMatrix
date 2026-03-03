@@ -1150,15 +1150,11 @@ function Test-MatrixSettingHC {
 
     .PARAMETER Setting
         Represents one row in the Excel sheet 'Settings', as retrieved by Import-Excel.
-
-    .PARAMETER Location
-        The string used to define the location in the Excel file where the error occurred.
-#>
-
+    #>
     [CmdletBinding()]
-    [OutputType([PSCustomObject[]])]
+    [OutputType([PSCustomObject])]
     param (
-        [Parameter(Mandatory)]
+        [Parameter(Mandatory, ValueFromPipeline)]
         [PSCustomObject]$Setting
     )
 
@@ -1166,31 +1162,38 @@ function Test-MatrixSettingHC {
         try {
             $Properties = ($Setting | Get-Member -MemberType NoteProperty).Name
 
+            # Define our mandatory properties once
+            $MandatoryProps = @('ComputerName', 'Path', 'Action')
+
             #region Missing property
-            if ($MissingProperty = @('ComputerName' , 'Path' , 'Action').Where( { $Properties -notcontains $_ })) {
+            $MissingProperty = $MandatoryProps.Where({ $_ -notin $Properties })
+            if ($MissingProperty) {
                 [PSCustomObject]@{
                     Type        = 'FatalError'
                     Name        = 'Missing column header'
-                    Description = "The column headers 'ComputerName', Path' and 'Action' are mandatory."
-                    Value       = $MissingProperty
+                    Description = "The column headers 'ComputerName', 'Path' and 'Action' are mandatory."
+                    Value       = $MissingProperty -join ', '
                 }
             }
             #endregion
 
             #region Blank property value
-            if ($BlankProperty = @('ComputerName' , 'Path' , 'Action').Where( {
-                        (-not ($Setting.$_)) -and ($Properties -contains $_) })) {
+            $BlankProperty = $MandatoryProps.Where({ 
+                    $_ -in $Properties -and [string]::IsNullOrWhiteSpace($Setting.$_)
+                })
+
+            if ($BlankProperty) {
                 [PSCustomObject]@{
                     Type        = 'FatalError'
                     Name        = 'Missing value'
-                    Description = "Values for 'ComputerName', Path' and 'Action' are mandatory."
-                    Value       = $BlankProperty
+                    Description = "Values for 'ComputerName', 'Path' and 'Action' are mandatory."
+                    Value       = $BlankProperty -join ', '
                 }
             }
             #endregion
 
             #region Action can only be New, Fix or Check
-            if (($Setting.Action) -and ($Setting.Action -notmatch '^(New|Fix|Check)$')) {
+            if (-not [string]::IsNullOrWhiteSpace($Setting.Action) -and $Setting.Action -notmatch '^(New|Fix|Check)$') {
                 [PSCustomObject]@{
                     Type        = 'FatalError'
                     Name        = 'Action value incorrect'
@@ -1201,7 +1204,10 @@ function Test-MatrixSettingHC {
             #endregion
 
             #region Path needs to be valid local path
-            if (($Setting.Path) -and ($Setting.Path -notmatch '^[a-zA-Z]:\\(\w+)')) {
+            if (
+                (-not [string]::IsNullOrWhiteSpace($Setting.Path)) -and 
+                ($Setting.Path -notmatch '^(?!.*\\\s)(?!.*\s\\)(?!.*\s$)[a-zA-Z]:\\[^<>:"/|?*]+$')
+            ) {
                 [PSCustomObject]@{
                     Type        = 'FatalError'
                     Name        = 'Path value incorrect'
@@ -1211,29 +1217,13 @@ function Test-MatrixSettingHC {
             }
             #endregion
 
-            #region JobsAtOnce is not an integer or not a number between 1-8
-            if ($Setting.JobsAtOnce) {
-                try {
-                    $incorrectNumber = $false
-                    $number = [int]$Setting.JobsAtOnce
-                }
-                catch {
-                    $global:Error.RemoveAt(0)
-                    $incorrectNumber = $true
-                }
-
-                if (
-                    (-not $incorrectNumber) -and
-                    (-not (0..8 -contains $number))
-                ) {
-                    $incorrectNumber = $true
-                }
-
-                if ($incorrectNumber) {
+            #region JobsAtOnce is not a number between 0-9
+            if (-not [string]::IsNullOrWhiteSpace($Setting.JobsAtOnce)) {
+                if ($Setting.JobsAtOnce -notmatch '^[0-9]$') {
                     [PSCustomObject]@{
                         Type        = 'FatalError'
                         Name        = 'JobsAtOnce is not a valid number'
-                        Description = "The value for 'JobsAtOnce' needs to be a number between 1 and 8."
+                        Description = "The value for 'JobsAtOnce' needs to be a number between 0 and 9."
                         Value       = $Setting.JobsAtOnce
                     }
                 }

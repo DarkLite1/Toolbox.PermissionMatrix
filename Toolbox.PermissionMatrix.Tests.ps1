@@ -2766,7 +2766,7 @@ Describe 'Test-AdObjectsHC' {
         $actual = Test-AdObjectsHC -ADObjects $ADObjects
         $actual | Should -BeNullOrEmpty
     }
-} -Tag test
+}
 Describe 'Test-MatrixSettingHC' {
     Context 'a FatalError object is created when' {
         $TestCases = @(
@@ -2782,7 +2782,7 @@ Describe 'Test-MatrixSettingHC' {
                 Expected = [PSCustomObject]@{
                     Type        = 'FatalError'
                     Name        = 'JobsAtOnce is not a valid number'
-                    Description = "The value for 'JobsAtOnce' needs to be a number between 1 and 8."
+                    Description = "The value for 'JobsAtOnce' needs to be a number between 0 and 9."
                     Value       = 'a'
                 }
             }
@@ -2798,7 +2798,7 @@ Describe 'Test-MatrixSettingHC' {
                 Expected = [PSCustomObject]@{
                     Type        = 'FatalError'
                     Name        = 'Missing column header'
-                    Description = "The column headers 'ComputerName', Path' and 'Action' are mandatory."
+                    Description = "The column headers 'ComputerName', 'Path' and 'Action' are mandatory."
                     Value       = 'ComputerName'
                 }
             }
@@ -2814,7 +2814,7 @@ Describe 'Test-MatrixSettingHC' {
                 Expected = [PSCustomObject]@{
                     Type        = 'FatalError'
                     Name        = 'Missing column header'
-                    Description = "The column headers 'ComputerName', Path' and 'Action' are mandatory."
+                    Description = "The column headers 'ComputerName', 'Path' and 'Action' are mandatory."
                     Value       = 'Path'
                 }
             }
@@ -2830,7 +2830,7 @@ Describe 'Test-MatrixSettingHC' {
                 Expected = [PSCustomObject]@{
                     Type        = 'FatalError'
                     Name        = 'Missing column header'
-                    Description = "The column headers 'ComputerName', Path' and 'Action' are mandatory."
+                    Description = "The column headers 'ComputerName', 'Path' and 'Action' are mandatory."
                     Value       = 'Action'
                 }
             }
@@ -2847,8 +2847,8 @@ Describe 'Test-MatrixSettingHC' {
                 Expected = [PSCustomObject]@{
                     Type        = 'FatalError'
                     Name        = 'Missing column header'
-                    Description = "The column headers 'ComputerName', Path' and 'Action' are mandatory."
-                    Value       = @('ComputerName', 'Path', 'Action')
+                    Description = "The column headers 'ComputerName', 'Path' and 'Action' are mandatory."
+                    Value       = 'ComputerName, Path, Action'
                 }
             }
 
@@ -2863,7 +2863,7 @@ Describe 'Test-MatrixSettingHC' {
                 Expected = [PSCustomObject]@{
                     Type        = 'FatalError'
                     Name        = 'Missing value'
-                    Description = "Values for 'ComputerName', Path' and 'Action' are mandatory."
+                    Description = "Values for 'ComputerName', 'Path' and 'Action' are mandatory."
                     Value       = 'ComputerName'
                 }
             }
@@ -2879,8 +2879,8 @@ Describe 'Test-MatrixSettingHC' {
                 Expected = [PSCustomObject]@{
                     Type        = 'FatalError'
                     Name        = 'Missing value'
-                    Description = "Values for 'ComputerName', Path' and 'Action' are mandatory."
-                    Value       = @('ComputerName', 'Path', 'Action')
+                    Description = "Values for 'ComputerName', 'Path' and 'Action' are mandatory."
+                    Value       = 'ComputerName, Path, Action'
                 }
             }
 
@@ -2931,4 +2931,4 @@ Describe 'Test-MatrixSettingHC' {
             $actual.Value | Should -Be $expected.Value
         }
     }
-}
+} -Tag test
