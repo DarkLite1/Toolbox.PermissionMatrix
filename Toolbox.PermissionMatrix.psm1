@@ -500,45 +500,6 @@ function Get-ExecutableMatrixHC {
         }
     }
 }
-function Get-ADObjectNotExistingHC {
-    <#
-    .SYNOPSIS
-        Check if a SamAccountName exists in AD.
-
-    .DESCRIPTION
-        Check if a SamAccountName for a group or user object exists in active directory.
-        When the object is not found, the function will output its name.
-
-    .PARAMETER Name
-        SamAccountName of the active directory object.
-
-    .EXAMPLE
-        Test if two SamAccountNames exist in the active directory and return the ones that don't
-        Get-ADObjectNotExistingHC -Name 'UserExists', 'UserDoesNotExist'
-        Output: 'UserDoesNotExist'
-s#>
-
-    [CmdletBinding()]
-    [OutputType([String[]])]
-    param (
-        [ValidateNotNullOrEmpty()]
-        [Parameter(Mandatory, ValueFromPipeline)]
-        [String[]]$Name
-    )
-
-    process {
-        try {
-            foreach ($N in $Name) {
-                if (-not (Get-ADObject -Filter "SAMAccountName -eq '$N'")) {
-                    $N
-                }
-            }
-        }
-        catch {
-            throw "Failed to test if SamAccountName '$Name' exists: $_"
-        }
-    }
-}
 function Get-AdUserPrincipalNameHC {
     <#
     .SYNOPSIS
