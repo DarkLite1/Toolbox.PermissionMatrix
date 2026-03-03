@@ -889,7 +889,7 @@ Describe 'ConvertTo-MatrixAclHC' {
             Should -BeExactly ($expected | ConvertTo-Json)
         }
     }
-} -Tag test
+}
 Describe 'Format-PermissionsStringsHC' {
     Context "manipulate strings in the sheet 'Permissions'" {
         It 'convert numbers to strings' {
@@ -1144,7 +1144,7 @@ Describe 'Format-SettingStringsHC' {
             }
         }
     }
-}
+} -Tag test
 Describe 'Get-DefaultAclHC' {
     Context 'an error is thrown' {
         $TestCases = @(

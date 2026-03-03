@@ -294,35 +294,45 @@ function Format-PermissionsStringsHC {
 
     .PARAMETER Permissions
         Content of the Excel worksheet 'Permissions'.
-#>
+    #>
 
     [CmdletBinding()]
-    [OutputType([PSCustomObject[]])]
+    [OutputType([PSCustomObject])]
     param (
         [Parameter(Mandatory, ValueFromPipeline)]
         [PSCustomObject[]]$Permissions
     )
 
+    begin {
+        $RowIndex = 0
+        $FirstPropertyName = $null
+    }
+
     process {
-        $FirstPropertyName = $Permissions[0].PSObject.Properties.Name[0]
-
-        for ($i = 0; $i -lt $Permissions.Length; $i++) {
-            foreach ($P in $Permissions[$i].PSObject.Properties) {
-                $Value = if ($tmpVal = $P.Value) { $tmpVal.ToString().Trim() }
-
-                if ($Value) {
-                    if ($P.Name -eq $FirstPropertyName) {
-                        $Value = $Value.Trim('\')
-                    }
-                    elseif ($i -ge 3) {
-                        $Value = $Value.ToUpper()
-                    }
-                }
-
-                $P.Value = $Value
+        foreach ($Row in $Permissions) {
+            if ($null -eq $FirstPropertyName) {
+                $FirstPropertyName = @($Row.PSObject.Properties.Name)[0]
             }
 
-            $Permissions[$i]
+            foreach ($P in $Row.PSObject.Properties) {
+                if (-not [string]::IsNullOrWhiteSpace($P.Value)) {
+                    
+                    $CleanValue = $P.Value.ToString().Trim()
+
+                    if ($P.Name -eq $FirstPropertyName) {
+                        $P.Value = $CleanValue.Trim('\')
+                    } 
+                    elseif ($RowIndex -ge 3) {
+                        $P.Value = $CleanValue.ToUpper()
+                    } 
+                    else {
+                        $P.Value = $CleanValue
+                    }
+                }
+            }
+
+            $Row
+            $RowIndex++
         }
     }
 }
