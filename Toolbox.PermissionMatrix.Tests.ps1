@@ -542,7 +542,7 @@ Describe 'ConvertTo-MatrixADNamesHC' {
             }
         }
     }
-} -Tag test
+}
 Describe 'ConvertTo-MatrixAclHC' {
     Context 'an error is thrown when' {
         $TestCases = @(
@@ -557,7 +557,7 @@ Describe 'ConvertTo-MatrixAclHC' {
                     'P2' = @{SamAccountName = 'bob' }
                     'P3' = @{SamAccountName = 'bob' }
                 }
-                Expected      = "*AD object name 'Bob' is not unique*"
+                Expected      = "*AD object name 'bob' is not unique on folder path 'Path'*"
             }
             @{
                 TestName      = 'permissions are set but no SamAccountName is given'
@@ -570,7 +570,7 @@ Describe 'ConvertTo-MatrixAclHC' {
                     'P2' = @{SamAccountName = 'bob' }`
 
                 }
-                Expected      = 'AD Object name is required'
+                Expected      = "*Missing AD Object for column 3 on folder path 'Path'*"
             }
             @{
                 TestName      = "permissions are set and permission 'i' is set but no SamAccountName is given"
@@ -582,7 +582,7 @@ Describe 'ConvertTo-MatrixAclHC' {
                 ADObjects     = @{
                     'P2' = @{SamAccountName = 'bob' }
                 }
-                Expected      = 'AD Object name is required'
+                Expected      = "*Missing AD Object for column 3 on folder path 'Path'*"
             }
         )
 
@@ -601,6 +601,19 @@ Describe 'ConvertTo-MatrixAclHC' {
     }
     Context 'an error is not thrown when' {
         $TestCases = @(
+            @{
+                TestName      = 'there are no issues'
+                NonHeaderRows = @(
+                    [PSCustomObject]@{ P1 = 'Path' ; P2 = 'L' ; P3 = '' }
+                    [PSCustomObject]@{ P1 = 'F1'   ; P2 = 'W' ; P3 = 'W' }
+                    [PSCustomObject]@{ P1 = 'F2'   ; P2 = 'W' ; P3 = '' }
+                )
+                ADObjects     = @{
+                    'P1' = @{SamAccountName = 'mike' }
+                    'P2' = @{SamAccountName = 'bob' }
+                    'P3' = @{SamAccountName = 'jack' }
+                }
+            }
             @{
                 TestName      = "a column contains permission 'i', no SamAccountName, no other permissions"
                 NonHeaderRows = @(
@@ -876,7 +889,7 @@ Describe 'ConvertTo-MatrixAclHC' {
             Should -BeExactly ($expected | ConvertTo-Json)
         }
     }
-}
+} -Tag test
 Describe 'Format-PermissionsStringsHC' {
     Context "manipulate strings in the sheet 'Permissions'" {
         It 'convert numbers to strings' {
@@ -2578,7 +2591,7 @@ Describe 'Test-MatrixPermissionsHC' {
                 }
             }
 
-           $TestName = 'SamAccountName is missing in the header row'
+            $TestName = 'SamAccountName is missing in the header row'
             @{
                 TestName    = $TestName
                 Permissions = @(

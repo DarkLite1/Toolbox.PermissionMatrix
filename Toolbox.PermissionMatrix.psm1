@@ -112,7 +112,7 @@ function ConvertTo-MatrixADNamesHC {
         The value of the middle part of the newly generated string. Usually
         this is something like 'North'.
     #>
-    
+
     [CmdletBinding()]
     [OutputType([hashtable])]
     param (
@@ -211,75 +211,69 @@ function ConvertTo-MatrixAclHC {
     .PARAMETER ADObjects
         A hashtable containing the property name and the SamAccountName
         belonging to that column.
-#>
-
+    #>
     [CmdletBinding()]
-    [OutputType([PSCustomObject[]])]
+    [OutputType([PSCustomObject])]
     param (
-        [parameter(Mandatory)]
+        [Parameter(Mandatory)]
         [PSCustomObject[]]$NonHeaderRows,
-        [parameter(Mandatory)]
-        [HashTable]$ADObjects
+
+        [Parameter(Mandatory)]
+        [hashtable]$ADObjects
     )
 
     begin {
         try {
-            $FirstProperty = @($NonHeaderRows[0].PSObject.Properties.Name)[0]
+            # Cache the column names ONCE instead of evaluating them every row
+            $AllProperties = $NonHeaderRows[0].PSObject.Properties.Name
+            $FirstProperty = $AllProperties[0]
+            
+            # Create an array of just the columns that contain permissions
+            $PermColumns = $AllProperties | Select-Object -Skip 1
         }
         catch {
-            throw "Failed converting to matrix ACL: $_"
+            throw "Failed initializing ConvertTo-MatrixAclHC: $_"
         }
     }
 
     process {
         try {
-            $FirstTimeThrough = $true
+            for ($i = 0; $i -lt $NonHeaderRows.Count; $i++) {
+                $Row = $NonHeaderRows[$i]
+                $Path = $Row.$FirstProperty
 
-            foreach ($N in $NonHeaderRows) {
                 $Obj = [PSCustomObject]@{
-                    Path   = $N.$FirstProperty
-                    Parent = $false
+                    Path   = $Path
+                    Parent = ($i -eq 0)
                     Ignore = $false
                     ACL    = @{}
                 }
 
-                if ($FirstTimeThrough) {
-                    $FirstTimeThrough = $false
-                    $Obj.Parent = $true
+                foreach ($ColName in $PermColumns) {
+                    $Ace = $Row.$ColName
+
+                    if ([string]::IsNullOrWhiteSpace($Ace)) { continue }
+
+                    # If we hit an 'i' or 'I', set Ignore, clear any ACLs, and stop checking this row
+                    if ($Ace -eq 'i' -or $Ace -eq 'I') {
+                        $Obj.Ignore = $true
+                        $Obj.ACL.Clear()
+                        break
+                    }
+
+                    $SamAccountName = $ADObjects.($ColName).SamAccountName
+
+                    if ([string]::IsNullOrWhiteSpace($SamAccountName)) {
+                        throw "Missing AD Object for column $($ColName.TrimStart('P')) on folder path '$Path'."
+                    }
+
+                    if ($Obj.ACL.ContainsKey($SamAccountName)) {
+                        throw "The AD object name '$SamAccountName' is not unique on folder path '$Path'."
+                    }
+
+                    $Obj.ACL.Add($SamAccountName, $Ace)
                 }
 
-                $Props = $N.PSObject.Properties.Where( {
-                        $_.Name -ne $FirstProperty })
-
-                $ACL = @{}
-
-                if ($Props.Value -contains 'i') {
-                    $Obj.Ignore = $true
-                }
-                else {
-                    $Props.Foreach( {
-                            if ($Ace = $_.Value) {
-                                <#
-                                there tests are done after building the matrix
-                                because AD Object names can be duplicate after
-                                they are generated with a manual entry in the
-                                column header
-                            #>
-                                if (-not ($SamAccountName = $ADObjects.($_.Name).SamAccountName)) {
-                                    throw 'When permissions are set an AD object name is required.'
-                                }
-
-                                if ($ACL.ContainsKey($SamAccountName)) {
-                                    throw "The AD object name '$SamAccountName' is not unique."
-                                }
-
-                                if ($Ace) {
-                                    $ACL.Add($SamAccountName, $Ace)
-                                }
-                            }
-                        })
-                }
-                $Obj.ACL = $ACL
                 $Obj
             }
         }
