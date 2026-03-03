@@ -350,7 +350,7 @@ function Format-SettingStringsHC {
 
     .PARAMETER Settings
         One row in the Excel sheet 'Settings'.
-#>
+    #>
 
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
@@ -362,60 +362,35 @@ function Format-SettingStringsHC {
     process {
         $Obj = [ordered]@{}
 
-        ($Settings.PSObject.Properties).Foreach( {
-                $Value = if ($tmpVal = $_.Value) {
-                    $tmpVal.ToString().Trim()
-                }
-                else {
-                    $null
-                }
+        foreach ($Prop in $Settings.PSObject.Properties) {
+            if ([string]::IsNullOrWhiteSpace($Prop.Value)) {
+                $Obj[$Prop.Name] = $null
+                continue
+            }
 
-                $Obj.($_.Name) = switch ($_.Name) {
-                    'Action' {
-                        if ($Value) {
-                            $Value.SubString(0, 1).ToUpper() + $Value.SubString(1).ToLower()
-                        }
-                        else {
-                            $null
-                        }
-                        break
-                    }
-                    'ComputerName' {
-                        if ($Value) {
-                            $Value = $Value.ToUpper()
-                            if ($Value -like "*.$env:USERDNSDOMAIN") {
-                                $Value = $Value -replace ".$env:USERDNSDOMAIN"
-                            }
-                            $Value
-                        }
-                        else {
-                            $null
-                        }
-                        break
-                    }
-                    'Path' {
-                        if ($Value) {
-                            $Value.TrimEnd('\')
-                        }
-                        else {
-                            $null
-                        }
-                        break
-                    }
-                    'Status' {
-                        if ($Value) {
-                            $Value.SubString(0, 1).ToUpper() + $Value.SubString(1).ToLower()
-                        }
-                        else {
-                            $null
-                        }
-                        break
-                    }
-                    default {
-                        $Value
-                    }
+            $Value = $Prop.Value.ToString().Trim()
+
+            $Obj[$Prop.Name] = switch ($Prop.Name) {
+                { $_ -in 'Action', 'Status' } {
+                    $Value.Substring(0, 1).ToUpper() + $Value.Substring(1).ToLower()
                 }
-            })
+                'ComputerName' {
+                    $Value = $Value.ToUpper()
+                    $Domain = $env:USERDNSDOMAIN
+                    
+                    if ($Domain -and $Value -like "*.$Domain") {
+                        $Value = $Value -ireplace [regex]::Escape(".$Domain"), ''
+                    }
+                    $Value
+                }
+                'Path' {
+                    $Value.TrimEnd('\')
+                }
+                default {
+                    $Value
+                }
+            }
+        }
 
         [PSCustomObject]$Obj
     }
