@@ -165,7 +165,7 @@ Describe 'Get-AdUserPrincipalNameHC' {
             $actual.notFound | Should -Be 'bob@mail.com'
         }
     }
-} -ForEach @{ moduleName = $moduleName } -Tag test
+} -ForEach @{ moduleName = $moduleName } 
 Describe 'Test-FormDataHC' {
     Context 'should create a FatalError object when' {
         It 'there is more than one object' {
@@ -2117,8 +2117,8 @@ Describe 'Test-ExpandedMatrixHC' {
             $expected = [PSCustomObject]@{
                 Type        = 'Warning'
                 Name        = 'No folder access'
-                Description = 'Every folder defined in the first column needs to have at least one user account that is able to access it. Group membership is checked to verify if groups granting access to the folder have at least one user account as a member that is not a place holder account.'
-                Value       = $null
+                Description = 'Every folder defined in the first column needs to have at least one valid user/group that is able to access it.'
+                Value       = 'folder'
             }
         }
         Context 'return a warning object when' {
@@ -2139,7 +2139,7 @@ Describe 'Test-ExpandedMatrixHC' {
                     )
                 }
 
-                $expected.Value = 'folder'
+                $expected.Value = @('folder')
 
                 $actual = Test-ExpandedMatrixHC @testParams |
                 Where-Object Name -EQ $expected.Name
@@ -2172,7 +2172,7 @@ Describe 'Test-ExpandedMatrixHC' {
                     )
                 }
 
-                $expected.Value = 'folder'
+                $expected.Value = @('folder')
 
                 $actual = Test-ExpandedMatrixHC @testParams |
                 Where-Object Name -EQ $expected.Name
@@ -2279,8 +2279,8 @@ Describe 'Test-ExpandedMatrixHC' {
             $expected = [PSCustomObject]@{
                 Type        = 'Information'
                 Name        = 'Conflicting AD Objects'
-                Description = "AD Objects defined in the matrix are duplicate with the ones defined in the default permissions. In such cases the AD objects in the matrix win over those in the default permissions. This to ensure a folder can be made completely private to those defined in the matrix. This can be desired for departments like 'Legal' or 'HR' where data might contain sensitive information that should not be visible to IT admins defined in the default permissions."
-                Value       = $null
+                Description = 'AD Objects defined in the matrix conflict with those in the default permissions. Matrix objects will override default permissions.'
+                Value       = @('group1')
             }
         }
         Context 'return an information object when' {
@@ -2416,7 +2416,7 @@ Describe 'Test-ExpandedMatrixHC' {
             }
         }
     }
-}
+}  -Tag test
 Describe 'Test-MatrixPermissionsHC' {
     Context 'Deepest folder has only List permissions or none at all' {
         Context 'no Warning object is created when' {
