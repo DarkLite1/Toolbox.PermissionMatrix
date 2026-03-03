@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 
-Function ConvertTo-AceHC {
+function ConvertTo-AceHC {
     <#
     .SYNOPSIS
         Convert an AD Object name and a permission character to a valid ACE.
@@ -15,7 +15,7 @@ Function ConvertTo-AceHC {
         Name of the AD object, used to identify the user or group within AD.
 #>
 
-    Param (
+    param (
         [Parameter(Mandatory)]
         [ValidateSet('L', 'R', 'W', 'F', 'M')]
         [String]$Type,
@@ -23,7 +23,7 @@ Function ConvertTo-AceHC {
         [String]$Name
     )
 
-    Switch ($Type) {
+    switch ($Type) {
         'L' {
             New-Object System.Security.AccessControl.FileSystemAccessRule(
                 "$env:USERDOMAIN\$Name",
@@ -32,7 +32,7 @@ Function ConvertTo-AceHC {
                 [System.Security.AccessControl.PropagationFlags]::None,
                 [System.Security.AccessControl.AccessControlType]::Allow
             )
-            Break
+            break
         }
         'W' {
             # This folder only
@@ -51,7 +51,7 @@ Function ConvertTo-AceHC {
                 [System.Security.AccessControl.PropagationFlags]::InheritOnly,
                 [System.Security.AccessControl.AccessControlType]::Allow
             )
-            Break
+            break
         }
         'R' {
             New-Object System.Security.AccessControl.FileSystemAccessRule(
@@ -61,7 +61,7 @@ Function ConvertTo-AceHC {
                 [System.Security.AccessControl.PropagationFlags]::None,
                 [System.Security.AccessControl.AccessControlType]::Allow
             )
-            Break
+            break
         }
         'F' {
             New-Object System.Security.AccessControl.FileSystemAccessRule(
@@ -71,7 +71,7 @@ Function ConvertTo-AceHC {
                 [System.Security.AccessControl.PropagationFlags]::None,
                 [System.Security.AccessControl.AccessControlType]::Allow
             )
-            Break
+            break
         }
         'M' {
             New-Object System.Security.AccessControl.FileSystemAccessRule(
@@ -81,14 +81,14 @@ Function ConvertTo-AceHC {
                 [System.Security.AccessControl.PropagationFlags]::None,
                 [System.Security.AccessControl.AccessControlType]::Allow
             )
-            Break
+            break
         }
-        Default {
+        default {
             throw "Permission character '$_' not supported."
         }
     }
 }
-Function ConvertTo-MatrixADNamesHC {
+function ConvertTo-MatrixADNamesHC {
     <#
     .SYNOPSIS
         Generate AD SamAccountNames from the first three rows in the Excel file.
@@ -119,7 +119,7 @@ Function ConvertTo-MatrixADNamesHC {
 
     [CmdLetBinding()]
     [OutputType([HashTable])]
-    Param (
+    param (
         [Parameter(Mandatory)]
         [ValidateCount(3, 1000)]
         [PSCustomObject[]]$ColumnHeaders,
@@ -129,8 +129,8 @@ Function ConvertTo-MatrixADNamesHC {
         [String]$MiddleReplace = 'SiteCode'
     )
 
-    Process {
-        Try {
+    process {
+        try {
             Write-Verbose 'Convert to matrix AD object names'
 
             $firstProperty = @($ColumnHeaders[0].PSObject.Properties.Name)[0]
@@ -186,12 +186,12 @@ Function ConvertTo-MatrixADNamesHC {
 
             $result
         }
-        Catch {
+        catch {
             throw "Failed generating the correct AD object name for begin '$Begin' and middle '$Middle': $_"
         }
     }
 }
-Function ConvertTo-MatrixAclHC {
+function ConvertTo-MatrixAclHC {
     <#
     .SYNOPSIS
         Convert the Excel sheet 'Permissions' to permission objects.
@@ -216,24 +216,24 @@ Function ConvertTo-MatrixAclHC {
 
     [CmdletBinding()]
     [OutputType([PSCustomObject[]])]
-    Param (
+    param (
         [parameter(Mandatory)]
         [PSCustomObject[]]$NonHeaderRows,
         [parameter(Mandatory)]
         [HashTable]$ADObjects
     )
 
-    Begin {
-        Try {
+    begin {
+        try {
             $FirstProperty = @($NonHeaderRows[0].PSObject.Properties.Name)[0]
         }
-        Catch {
+        catch {
             throw "Failed converting to matrix ACL: $_"
         }
     }
 
-    Process {
-        Try {
+    process {
+        try {
             $FirstTimeThrough = $true
 
             foreach ($N in $NonHeaderRows) {
@@ -284,12 +284,12 @@ Function ConvertTo-MatrixAclHC {
                 $Obj
             }
         }
-        Catch {
+        catch {
             throw "Failed converting to matrix ACL: $_"
         }
     }
 }
-Function Format-PermissionsStringsHC {
+function Format-PermissionsStringsHC {
     <#
     .SYNOPSIS
         String manipulations on values in the 'Permissions' sheet.
@@ -305,12 +305,12 @@ Function Format-PermissionsStringsHC {
 
     [CmdletBinding()]
     [OutputType([PSCustomObject[]])]
-    Param (
+    param (
         [Parameter(Mandatory, ValueFromPipeline)]
         [PSCustomObject[]]$Permissions
     )
 
-    Process {
+    process {
         $FirstPropertyName = $Permissions[0].PSObject.Properties.Name[0]
 
         for ($i = 0; $i -lt $Permissions.Length; $i++) {
@@ -333,7 +333,7 @@ Function Format-PermissionsStringsHC {
         }
     }
 }
-Function Format-SettingStringsHC {
+function Format-SettingStringsHC {
     <#
     .SYNOPSIS
         String manipulations on values in the 'Settings' sheet.
@@ -351,12 +351,12 @@ Function Format-SettingStringsHC {
 
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
-    Param (
+    param (
         [Parameter(Mandatory, ValueFromPipeline)]
         [PSCustomObject]$Settings
     )
 
-    Process {
+    process {
         $Obj = [ordered]@{}
 
         ($Settings.PSObject.Properties).Foreach( {
@@ -367,7 +367,7 @@ Function Format-SettingStringsHC {
                     $null
                 }
 
-                $Obj.($_.Name) = Switch ($_.Name) {
+                $Obj.($_.Name) = switch ($_.Name) {
                     'Action' {
                         if ($Value) {
                             $Value.SubString(0, 1).ToUpper() + $Value.SubString(1).ToLower()
@@ -381,7 +381,7 @@ Function Format-SettingStringsHC {
                         if ($Value) {
                             $Value = $Value.ToUpper()
                             if ($Value -like "*.$env:USERDNSDOMAIN") {
-                                $Value = $Value -Replace ".$env:USERDNSDOMAIN"
+                                $Value = $Value -replace ".$env:USERDNSDOMAIN"
                             }
                             $Value
                         }
@@ -408,7 +408,7 @@ Function Format-SettingStringsHC {
                         }
                         break
                     }
-                    Default {
+                    default {
                         $Value
                     }
                 }
@@ -417,7 +417,7 @@ Function Format-SettingStringsHC {
         [PSCustomObject]$Obj
     }
 }
-Function Get-DefaultAclHC {
+function Get-DefaultAclHC {
     <#
     .SYNOPSIS
         Get the ACL from the default settings.
@@ -433,12 +433,12 @@ Function Get-DefaultAclHC {
 
     [CmdletBinding()]
     [OutputType([HashTable])]
-    Param (
+    param (
         [PSCustomObject[]]$Sheet
     )
 
-    Process {
-        Try {
+    process {
+        try {
             $ACL = @{}
 
             $Sheet.Where( { $_.ADObjectName -or $_.Permission }).ForEach( {
@@ -449,7 +449,7 @@ Function Get-DefaultAclHC {
                         throw "AD object name '$ADObjectName' has no permission."
                     }
 
-                    if ($Permission -notMatch '^(L|R|W|C|F)$') {
+                    if ($Permission -notmatch '^(L|R|W|C|F)$') {
                         throw "Permission character '$Permission' unknown."
                     }
 
@@ -457,22 +457,22 @@ Function Get-DefaultAclHC {
                         throw "Permission '$Permission' has no AD object name."
                     }
 
-                    Try {
+                    try {
                         $ACL.Add($ADObjectName, $Permission)
                     }
-                    Catch {
+                    catch {
                         throw "AD Object name '$ADObjectName' is not unique."
                     }
                 })
 
             $ACL
         }
-        Catch {
+        catch {
             throw "Failed retrieving the ACL from the default settings file: $_"
         }
     }
 }
-Function Get-ExecutableMatrixHC {
+function Get-ExecutableMatrixHC {
     <#
     .SYNOPSIS
         Retrieve only those matrix that are able to be executed.
@@ -489,23 +489,23 @@ Function Get-ExecutableMatrixHC {
 
     [CmdletBinding()]
     [OutputType([PSCustomObject[]])]
-    Param (
+    param (
         [Parameter(Mandatory = $false)]
         [PSCustomObject[]]$From
     )
 
-    Try {
+    try {
         @((@($From).Where( {
-                        ($_.File.Check.Type -notContains 'FatalError') -and
-                        ($_.Permissions.Check.Type -notContains 'FatalError') })).Settings).Where( {
-                ($_.Check.Type -notContains 'FatalError') -and ($_.Matrix)
+                        ($_.File.Check.Type -notcontains 'FatalError') -and
+                        ($_.Permissions.Check.Type -notcontains 'FatalError') })).Settings).Where( {
+                ($_.Check.Type -notcontains 'FatalError') -and ($_.Matrix)
             })
     }
-    Catch {
+    catch {
         throw "Failed retrieving the executable matrix: $_"
     }
 }
-Function Get-JobErrorHC {
+function Get-JobErrorHC {
     <#
     .SYNOPSIS
         Retrieve errors from executed jobs.
@@ -525,15 +525,15 @@ Function Get-JobErrorHC {
 
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
-    Param (
+    param (
         [Parameter(Mandatory)]
         [System.Management.Automation.Job]$Job
     )
 
-    Try {
+    try {
         $Check = @{}
 
-        Switch ($Job.State) {
+        switch ($Job.State) {
             'Completed' {
                 if ($Job.ChildJobs[0].Error) {
                     $Check.Type = 'FatalError'
@@ -541,7 +541,7 @@ Function Get-JobErrorHC {
                     $Check.Name = 'Non terminating error'
                     $Check.Description = "A non terminating error occurred while executing the job '$($Job.Name)'."
                 }
-                Break
+                break
             }
             'Failed' {
                 $Check.Type = 'FatalError'
@@ -555,9 +555,9 @@ Function Get-JobErrorHC {
                     $Check.Name = 'Terminating error'
                     $Check.Description = "A terminating error occurred while executing the job '$($Job.Name)'."
                 }
-                Break
+                break
             }
-            Default {
+            default {
                 throw "Job state '$_' is unsupported."
             }
         }
@@ -566,11 +566,11 @@ Function Get-JobErrorHC {
             [PSCustomObject]$Check
         }
     }
-    Catch {
+    catch {
         throw "Failed retrieving the job errors for job '$($Job.Name)' on '$($Job.Location)': $_"
     }
 }
-Function Get-ADObjectNotExistingHC {
+function Get-ADObjectNotExistingHC {
     <#
     .SYNOPSIS
         Check if a SamAccountName exists in AD.
@@ -590,26 +590,26 @@ s#>
 
     [CmdletBinding()]
     [OutputType([String[]])]
-    Param (
+    param (
         [ValidateNotNullOrEmpty()]
         [Parameter(Mandatory, ValueFromPipeline)]
         [String[]]$Name
     )
 
-    Process {
-        Try {
+    process {
+        try {
             foreach ($N in $Name) {
                 if (-not (Get-ADObject -Filter "SAMAccountName -eq '$N'")) {
                     $N
                 }
             }
         }
-        Catch {
+        catch {
             throw "Failed to test if SamAccountName '$Name' exists: $_"
         }
     }
 }
-Function Get-AdUserPrincipalNameHC {
+function Get-AdUserPrincipalNameHC {
     <#
     .SYNOPSIS
         Convert a list of e-mail addresses to a list of UserPrincipalNames.
@@ -626,7 +626,7 @@ Function Get-AdUserPrincipalNameHC {
 
     [CmdletBinding()]
     [OutputType([HashTable])]
-    Param(
+    param(
         [Parameter(Mandatory)]
         [String[]]$Name,
         [String[]]$ExcludeSamAccountName
@@ -644,7 +644,7 @@ Function Get-AdUserPrincipalNameHC {
 
             if (-not $adObject) {
                 $notFound += $N
-                Continue
+                continue
             }
 
             $adUsers = if ($adObject.ObjectClass -eq 'group') {
@@ -658,7 +658,7 @@ Function Get-AdUserPrincipalNameHC {
             Where-Object {
                 ($_.Mail) -and
                 ($_.Enabled) -and
-                ($ExcludeSamAccountName -notContains $_.SamAccountName)
+                ($ExcludeSamAccountName -notcontains $_.SamAccountName)
             } |
             Select-Object -ExpandProperty 'UserPrincipalName'
         }
@@ -672,7 +672,7 @@ Function Get-AdUserPrincipalNameHC {
         throw "Failed converting email address or SamAccountName to userPrincipalName: $_"
     }
 }
-Function Test-AclEqualHC {
+function Test-AclEqualHC {
     <#
 	.SYNOPSIS
 		Compare two ACL's. Will return True if the Access Rules match and will return
@@ -684,14 +684,14 @@ Function Test-AclEqualHC {
         the Source ACE's, even if there is not the same amount of ACE's in each.
 	#>
 
-    Param (
+    param (
         [Parameter(Mandatory)]
         [System.Security.AccessControl.FileSystemSecurity]$DestinationAcl,
         [Parameter(Mandatory)]
         [System.Security.AccessControl.FileSystemSecurity]$SourceAcl
     )
 
-    Try {
+    try {
         $DestinationRules = $DestinationAcl.GetAccessRules($true, $true, [System.Security.Principal.NTAccount])
         $SourceRules = $SourceAcl.GetAccessRules($true, $true, [System.Security.Principal.NTAccount])
 
@@ -710,21 +710,21 @@ Function Test-AclEqualHC {
                 $Matches += $Match
             }
             else {
-                Return $False
+                return $False
             }
         }
 
         if ($Matches.Count -ne $SourceRules.Count) {
-            Return $False
+            return $False
         }
 
-        Return $True
+        return $True
     }
-    Catch {
+    catch {
         throw "Failed testing the ACL for equality: $_"
     }
 }
-Function Test-AclIsInheritedOnlyHC {
+function Test-AclIsInheritedOnlyHC {
     <#
 	.SYNOPSIS
 		Test if an ACL only contains inherited ACE's.
@@ -735,30 +735,30 @@ Function Test-AclIsInheritedOnlyHC {
         ACE's or the ACL is not set to inherit ACE's.
 	#>
 
-    Param (
+    param (
         [Parameter(Mandatory)]
         [System.Security.AccessControl.FileSystemSecurity]$Acl
     )
 
-    Try {
+    try {
         if ($Acl.AreAccessRulesProtected) {
-            Return $false
+            return $false
         }
 
         if ($Acl.GetAccessRules($true, $false, [System.Security.Principal.NTAccount]).Where( {
                     ($_.IdentityReference -ne 'BUILTIN\Administrators') -and
                     ($_.IdentityReference -ne 'NT AUTHORITY\SYSTEM') }).Count -ne 0) {
-            Return $false
+            return $false
         }
 
-        Return $true
+        return $true
     }
-    Catch {
+    catch {
         throw "Failed testing the ACL for inherited ACE's only: $_"
     }
 }
-Function Test-AdObjectsHC {
-    Param(
+function Test-AdObjectsHC {
+    param(
         [parameter(Mandatory)]
         [HashTable]$ADObjects
     )
@@ -790,7 +790,7 @@ Function Test-AdObjectsHC {
         throw "Failed testing AD object names: $_"
     }
 }
-Function Test-ExpandedMatrixHC {
+function Test-ExpandedMatrixHC {
     <#
     .SYNOPSIS
         Verify the data in the matrix.
@@ -811,7 +811,7 @@ Function Test-ExpandedMatrixHC {
 
     [CmdLetBinding()]
     [OutputType([PSCustomObject[]])]
-    Param (
+    param (
         [Parameter(Mandatory)]
         [PSCustomObject[]]$Matrix,
         [Parameter(Mandatory)]
@@ -820,10 +820,10 @@ Function Test-ExpandedMatrixHC {
         [HashTable]$DefaultAcl
     )
 
-    Try {
+    try {
         #region Check if the matrix contains objects not available in ADObjects
         $Matrix.ACL.Keys.Where(
-            { $ADObject.samAccountName -notContains $_ }
+            { $ADObject.samAccountName -notcontains $_ }
         ).Foreach( {
                 throw "Unknown AD Object '$_' found in the matrix."
             })
@@ -840,7 +840,7 @@ Function Test-ExpandedMatrixHC {
                 [PSCustomObject]@{
                     Type        = 'FatalError'
                     Name        = 'Unknown AD object'
-                    Description = "Every AD object defined in the header row needs to exist before the matrix can be correctly executed."
+                    Description = 'Every AD object defined in the header row needs to exist before the matrix can be correctly executed.'
                     Value       = $result
                 }
             }
@@ -852,7 +852,7 @@ Function Test-ExpandedMatrixHC {
                 { $_.adObject.ObjectClass -eq 'group' })
         ) {
             $groupMembers = @($group.adGroupMember.SamAccountName).Where( {
-                    $ExcludedSamAccountName -notContains $_
+                    $ExcludedSamAccountName -notcontains $_
                 })
             if (-not $groupMembers) {
                 $group.samAccountName
@@ -877,7 +877,7 @@ Function Test-ExpandedMatrixHC {
         $validAdObjects = $ADObject.Where( {
                 (
                     ($_.ADObject.ObjectClass -eq 'group') -and
-                    ($emptyAdGroups -notContains $_.samAccountName)
+                    ($emptyAdGroups -notcontains $_.samAccountName)
                 ) -or
                 ($_.ADObject.ObjectClass -eq 'user')
             }).samAccountName
@@ -888,7 +888,7 @@ Function Test-ExpandedMatrixHC {
             [PSCustomObject]@{
                 Type        = 'Warning'
                 Name        = 'No folder access'
-                Description = "Every folder defined in the first column needs to have at least one user account that is able to access it. Group membership is checked to verify if groups granting access to the folder have at least one user account as a member that is not a place holder account."
+                Description = 'Every folder defined in the first column needs to have at least one user account that is able to access it. Group membership is checked to verify if groups granting access to the folder have at least one user account as a member that is not a place holder account.'
                 Value       = $result
             }
         }
@@ -914,11 +914,11 @@ Function Test-ExpandedMatrixHC {
         }
         #endregion
     }
-    Catch {
+    catch {
         throw "Failed validating the expanded matrix: $_"
     }
 }
-Function Test-FormDataHC {
+function Test-FormDataHC {
     <#
     .SYNOPSIS
         Verify input for the Excel sheet 'FormData'.
@@ -932,13 +932,13 @@ Function Test-FormDataHC {
 
     [CmdletBinding()]
     [OutputType([PSCustomObject[]])]
-    Param (
+    param (
         [Parameter(Mandatory)]
         [PSCustomObject[]]$FormData
     )
 
-    Process {
-        Try {
+    process {
+        try {
             if ($FormData.Count -ge 2) {
                 return [PSCustomObject]@{
                     Type        = 'FatalError'
@@ -951,11 +951,11 @@ Function Test-FormDataHC {
             $Properties = ($FormData | Get-Member -MemberType NoteProperty).Name
 
             #region Test mandatory property MatrixFormStatus
-            if ($Properties -notContains 'MatrixFormStatus') {
+            if ($Properties -notcontains 'MatrixFormStatus') {
                 return [PSCustomObject]@{
                     Type        = 'FatalError'
                     Name        = 'Missing column header'
-                    Description = "The column header MatrixFormStatus is mandatory."
+                    Description = 'The column header MatrixFormStatus is mandatory.'
                     Value       = 'MatrixFormStatus'
                 }
             }
@@ -972,7 +972,7 @@ Function Test-FormDataHC {
             )
 
             if ($MissingProperty = $mandatoryProperties.Where( {
-                        $Properties -notContains $_ })) {
+                        $Properties -notcontains $_ })) {
                 return [PSCustomObject]@{
                     Type        = 'FatalError'
                     Name        = 'Missing column header'
@@ -1000,12 +1000,12 @@ Function Test-FormDataHC {
                 #endregion
             }
         }
-        Catch {
+        catch {
             throw "Failed testing the Excel sheet 'FormData': $_"
         }
     }
 }
-Function Test-MatrixPermissionsHC {
+function Test-MatrixPermissionsHC {
     <#
     .SYNOPSIS
         Verify input for the Excel sheet 'Permissions'.
@@ -1024,19 +1024,19 @@ Function Test-MatrixPermissionsHC {
 
     [CmdletBinding()]
     [OutputType([PSCustomObject[]])]
-    Param (
+    param (
         [parameter(Mandatory)]
         [PSCustomObject[]]$Permissions
     )
 
-    Process {
-        Try {
+    process {
+        try {
             $Props = $Permissions[0].PSObject.Properties.Name
             $FirstProperty = $Props[0]
 
             #region At least 4 rows
             if (@($Permissions).Count -lt 4) {
-                Return [PSCustomObject]@{
+                return [PSCustomObject]@{
                     Type        = 'FatalError'
                     Name        = 'Missing rows'
                     Description = 'At least 4 rows are required: 3 header rows and 1 row for the parent folder.'
@@ -1047,11 +1047,30 @@ Function Test-MatrixPermissionsHC {
 
             #region At least 2 columns
             if (@($Props).Count -lt 2) {
-                Return [PSCustomObject]@{
+                return [PSCustomObject]@{
                     Type        = 'FatalError'
                     Name        = 'Missing columns'
                     Description = 'At least 2 columns are required: 1 for the folder names and 1 where the permissions are defined.'
                     Value       = "$(@($Props).Count) column"
+                }
+            }
+            #endregion
+
+            #region Missing header SamAccountName
+            $columns = $Permissions[0].PSObject.Properties.Name
+
+            foreach ($col in $columns) {
+                if (
+                    (-not $Permissions[0].$col) -and 
+                    (-not $Permissions[1].$col) -and 
+                    (-not $Permissions[2].$col)
+                ) {
+                    return [PSCustomObject]@{
+                        Type        = 'FatalError'
+                        Name        = 'SamAccountName name missing'
+                        Description = 'Missing SamAccountName in the header row'
+                        Value       = "Column number $($col.TrimStart('P'))"
+                    }
                 }
             }
             #endregion
@@ -1065,7 +1084,7 @@ Function Test-MatrixPermissionsHC {
                 $Props.Foreach( {
                         $Ace = if ($tmpVal = $_.Value) { $tmpVal }
 
-                        if (($Ace) -and ($Ace -notMatch '^(L|R|W|I|C|F)$')) {
+                        if (($Ace) -and ($Ace -notmatch '^(L|R|W|I|C|F)$')) {
                             $Ace
                         }
                     })
@@ -1102,7 +1121,7 @@ Function Test-MatrixPermissionsHC {
             $NotUniqueFolder = @($FolderNames.$FirstProperty | Group-Object).Where( { $_.Count -ge 2 })
 
             if ($NotUniqueFolder) {
-                Return [PSCustomObject]@{
+                return [PSCustomObject]@{
                     Type        = 'FatalError'
                     Name        = 'Folder name not unique'
                     Description = 'Every folder name in the first column needs to be unique. This is required to be able to set the correct permissions.'
@@ -1139,19 +1158,19 @@ Function Test-MatrixPermissionsHC {
             if ($inAccessibleFolder) {
                 [PSCustomObject]@{
                     Type        = 'Warning'
-                    Description = "All folders need to be accessible by the end user. Please define at least (R)ead or (W)rite permissions on the deepest folder or use the permission (I) ignore."
+                    Description = 'All folders need to be accessible by the end user. Please define at least (R)ead or (W)rite permissions on the deepest folder or use the permission (I) ignore.'
                     Name        = 'Matrix design flaw'
                     Value       = $inAccessibleFolder
                 }
             }
             #endregion
         }
-        Catch {
+        catch {
             throw "Failed testing the Excel sheet 'Permissions' for incorrect data: $_"
         }
     }
 }
-Function Test-MatrixSettingHC {
+function Test-MatrixSettingHC {
     <#
     .SYNOPSIS
         Verify input for the Excel sheet 'Settings'.
@@ -1172,17 +1191,17 @@ Function Test-MatrixSettingHC {
 
     [CmdletBinding()]
     [OutputType([PSCustomObject[]])]
-    Param (
+    param (
         [Parameter(Mandatory)]
         [PSCustomObject]$Setting
     )
 
-    Process {
-        Try {
+    process {
+        try {
             $Properties = ($Setting | Get-Member -MemberType NoteProperty).Name
 
             #region Missing property
-            if ($MissingProperty = @('ComputerName' , 'Path' , 'Action').Where( { $Properties -notContains $_ })) {
+            if ($MissingProperty = @('ComputerName' , 'Path' , 'Action').Where( { $Properties -notcontains $_ })) {
                 [PSCustomObject]@{
                     Type        = 'FatalError'
                     Name        = 'Missing column header'
@@ -1205,7 +1224,7 @@ Function Test-MatrixSettingHC {
             #endregion
 
             #region Action can only be New, Fix or Check
-            if (($Setting.Action) -and ($Setting.Action -notMatch '^(New|Fix|Check)$')) {
+            if (($Setting.Action) -and ($Setting.Action -notmatch '^(New|Fix|Check)$')) {
                 [PSCustomObject]@{
                     Type        = 'FatalError'
                     Name        = 'Action value incorrect'
@@ -1216,7 +1235,7 @@ Function Test-MatrixSettingHC {
             #endregion
 
             #region Path needs to be valid local path
-            if (($Setting.Path) -and ($Setting.Path -notMatch '^[a-zA-Z]:\\(\w+)')) {
+            if (($Setting.Path) -and ($Setting.Path -notmatch '^[a-zA-Z]:\\(\w+)')) {
                 [PSCustomObject]@{
                     Type        = 'FatalError'
                     Name        = 'Path value incorrect'
@@ -1255,7 +1274,7 @@ Function Test-MatrixSettingHC {
             }
             #endregion
         }
-        Catch {
+        catch {
             throw "Failed testing the Excel sheet 'Settings' row for incorrect data: $_"
         }
     }

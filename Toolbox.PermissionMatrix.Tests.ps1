@@ -509,7 +509,7 @@ Describe 'ConvertTo-MatrixADNamesHC' {
             )
 
             It '<TestName>' -TestCases $TestCases {
-                Param (
+                param (
                     $Permissions,
                     $expected
                 )
@@ -547,7 +547,7 @@ Describe 'ConvertTo-MatrixAclHC' {
     Context 'an error is thrown when' {
         $TestCases = @(
             @{
-                TestName      = "duplicate SamAccountNames are given"
+                TestName      = 'duplicate SamAccountNames are given'
                 NonHeaderRows = @(
                     [PSCustomObject]@{ P1 = 'Path' ; P2 = 'L' ; P3 = 'R' }
                     [PSCustomObject]@{ P1 = 'F1'   ; P2 = 'W' ; P3 = 'C' }
@@ -560,7 +560,7 @@ Describe 'ConvertTo-MatrixAclHC' {
                 Expected      = "*AD object name 'Bob' is not unique*"
             }
             @{
-                TestName      = "permissions are set but no SamAccountName is given"
+                TestName      = 'permissions are set but no SamAccountName is given'
                 NonHeaderRows = @(
                     [PSCustomObject]@{ P1 = 'Path' ; P2 = 'L' ; P3 = 'R' }
                     [PSCustomObject]@{ P1 = 'F1'   ; P2 = 'W' ; P3 = 'C' }
@@ -768,7 +768,7 @@ Describe 'ConvertTo-MatrixAclHC' {
                         Ignore = $false
                         ACL    = @{
                             'mike' = 'L'
-                            "bob"  = 'L'
+                            'bob'  = 'L'
                         }
                     }
                     [PSCustomObject]@{
@@ -783,7 +783,7 @@ Describe 'ConvertTo-MatrixAclHC' {
                         Ignore = $false
                         ACL    = @{
                             'mike' = 'R'
-                            "bob"  = 'C'
+                            'bob'  = 'C'
                         }
                     }
                 )
@@ -807,7 +807,7 @@ Describe 'ConvertTo-MatrixAclHC' {
                         Ignore = $false
                         ACL    = @{
                             'bob'  = 'L'
-                            "mike" = 'L'
+                            'mike' = 'L'
                         }
                     }
                     [PSCustomObject]@{
@@ -822,7 +822,7 @@ Describe 'ConvertTo-MatrixAclHC' {
                         Ignore = $false
                         ACL    = @{
                             'bob'  = 'R'
-                            "mike" = 'C'
+                            'mike' = 'C'
                         }
                     }
                 )
@@ -953,7 +953,7 @@ Describe 'Format-PermissionsStringsHC' {
 
         Context 'with the arguments passed by a named parameter' {
             It '<TestName>' -TestCases $TestCases {
-                Param (
+                param (
                     $Permissions,
                     $expected
                 )
@@ -970,7 +970,7 @@ Describe 'Format-PermissionsStringsHC' {
         }
         Context 'with the arguments passed through the pipeline' {
             It '<TestName>' -TestCases $TestCases {
-                Param (
+                param (
                     $Permissions,
                     $expected
                 )
@@ -1108,7 +1108,7 @@ Describe 'Format-SettingStringsHC' {
 
         Context 'with the arguments passed by a named parameter' {
             It '<TestName>' -TestCases $TestCases {
-                Param (
+                param (
                     $Settings,
                     $expected
                 )
@@ -1120,7 +1120,7 @@ Describe 'Format-SettingStringsHC' {
         }
         Context 'with the arguments passed through the pipeline' {
             It '<TestName>' -TestCases $TestCases {
-                Param (
+                param (
                     $Settings,
                     $expected
                 )
@@ -1180,8 +1180,8 @@ Describe 'Get-DefaultAclHC' {
             }
         )
 
-        It "<TaskName>" -TestCases $TestCases {
-            Param (
+        It '<TaskName>' -TestCases $TestCases {
+            param (
                 $DefaultsFile,
                 $expected
             )
@@ -1238,8 +1238,8 @@ Describe 'Get-DefaultAclHC' {
             }
         )
 
-        It "<TaskName>" -TestCases $TestCases {
-            Param (
+        It '<TaskName>' -TestCases $TestCases {
+            param (
                 $DefaultsFile,
                 $expected
             )
@@ -1494,7 +1494,7 @@ Describe 'Test-AclEqualHC' {
             Test-AclEqualHC -SourceAcl $sourceAcl -DestinationAcl $destinationAcl |
             Should -BeFalse
         }
-        It "the source ACL is empty" {
+        It 'the source ACL is empty' {
             $sourceAcl = New-Object System.Security.AccessControl.DirectorySecurity
 
             $destinationAcl = New-Object System.Security.AccessControl.DirectorySecurity
@@ -1503,7 +1503,7 @@ Describe 'Test-AclEqualHC' {
             Test-AclEqualHC -SourceAcl $sourceAcl -DestinationAcl $destinationAcl |
             Should -BeFalse
         }
-        It "the destination ACL is empty" {
+        It 'the destination ACL is empty' {
             $sourceAcl = New-Object System.Security.AccessControl.DirectorySecurity
             $sourceAcl.AddAccessRule($A)
 
@@ -1521,7 +1521,7 @@ Describe 'Test-AclEqualHC' {
                     New-Object System.Security.AccessControl.FileSystemAccessRule(
                         "$env:USERDOMAIN\$env:USERNAME",
                         [System.Security.AccessControl.FileSystemRights]::Modify,
-                        [System.Security.AccessControl.InheritanceFlags]"ContainerInherit,ObjectInherit",
+                        [System.Security.AccessControl.InheritanceFlags]'ContainerInherit,ObjectInherit',
                         [System.Security.AccessControl.PropagationFlags]::None,
                         [System.Security.AccessControl.AccessControlType]::Allow
                     )
@@ -1533,7 +1533,7 @@ Describe 'Test-AclEqualHC' {
                     New-Object System.Security.AccessControl.FileSystemAccessRule(
                         "$env:USERDOMAIN\$env:USERNAME",
                         [System.Security.AccessControl.FileSystemRights]::Modify,
-                        [System.Security.AccessControl.InheritanceFlags]"ContainerInherit",
+                        [System.Security.AccessControl.InheritanceFlags]'ContainerInherit',
                         [System.Security.AccessControl.PropagationFlags]::None,
                         [System.Security.AccessControl.AccessControlType]::Allow
                     )
@@ -1669,20 +1669,20 @@ Describe 'Test-AclIsInheritedOnlyHC' {
     }
     Context 'is returning true when' {
         It "there are only inherited ACE's in the ACL" {
-            $testFileItem = New-Item -Path "TestDrive:/testFolder" -ItemType Directory -Force
+            $testFileItem = New-Item -Path 'TestDrive:/testFolder' -ItemType Directory -Force
             $testAcl = $testFileItem.GetAccessControl()
 
             Test-AclIsInheritedOnlyHC -Acl $testAcl | Should -BeTrue
         }
         It "there are only inherited ACE's and the group 'BUILTIN\Administrators' in the ACL" {
-            $testFileItem = New-Item -Path "TestDrive:/testFolder" -ItemType Directory -Force
+            $testFileItem = New-Item -Path 'TestDrive:/testFolder' -ItemType Directory -Force
             $testAcl = $testFileItem.GetAccessControl()
             $testAcl.AddAccessRule($BuiltinAdmin)
 
             Test-AclIsInheritedOnlyHC -Acl $testAcl | Should -BeTrue
         }
         It "there are only inherited ACE's and the group 'NT AUTHORITY\SYSTEM' in the ACL" {
-            $testFileItem = New-Item -Path "TestDrive:/testFolder" -ItemType Directory -Force
+            $testFileItem = New-Item -Path 'TestDrive:/testFolder' -ItemType Directory -Force
             $testAcl = $testFileItem.GetAccessControl()
             $testAcl.AddAccessRule($SystemNtAuthority)
 
@@ -1691,7 +1691,7 @@ Describe 'Test-AclIsInheritedOnlyHC' {
     }
     Context 'is returning false when' {
         It "there is a non inherited ACE amongst the inherited ACE's" {
-            $testFileItem = New-Item -Path "TestDrive:/testFolder" -ItemType Directory -Force
+            $testFileItem = New-Item -Path 'TestDrive:/testFolder' -ItemType Directory -Force
             $testAcl = $testFileItem.GetAccessControl()
             $testAcl.AddAccessRule($A)
 
@@ -1734,7 +1734,7 @@ Describe 'Test-ExpandedMatrixHC' {
             $expected = [PSCustomObject]@{
                 Type        = 'FatalError'
                 Name        = 'Unknown AD object'
-                Description = "Every AD object defined in the header row needs to exist before the matrix can be correctly executed."
+                Description = 'Every AD object defined in the header row needs to exist before the matrix can be correctly executed.'
                 Value       = $null
             }
         }
@@ -2102,7 +2102,7 @@ Describe 'Test-ExpandedMatrixHC' {
             $expected = [PSCustomObject]@{
                 Type        = 'Warning'
                 Name        = 'No folder access'
-                Description = "Every folder defined in the first column needs to have at least one user account that is able to access it. Group membership is checked to verify if groups granting access to the folder have at least one user account as a member that is not a place holder account."
+                Description = 'Every folder defined in the first column needs to have at least one user account that is able to access it. Group membership is checked to verify if groups granting access to the folder have at least one user account as a member that is not a place holder account.'
                 Value       = $null
             }
         }
@@ -2457,7 +2457,7 @@ Describe 'Test-MatrixPermissionsHC' {
                     )
                     Expected    = @{
                         Type        = 'Warning'
-                        Description = "All folders need to be accessible by the end user. Please define at least (R)ead or (W)rite permissions on the deepest folder or use the permission (I) ignore."
+                        Description = 'All folders need to be accessible by the end user. Please define at least (R)ead or (W)rite permissions on the deepest folder or use the permission (I) ignore.'
                         Name        = 'Matrix design flaw'
                         Value       = 'Vegetables'
                     }
@@ -2476,7 +2476,7 @@ Describe 'Test-MatrixPermissionsHC' {
                     )
                     Expected    = @{
                         Type        = 'Warning'
-                        Description = "All folders need to be accessible by the end user. Please define at least (R)ead or (W)rite permissions on the deepest folder or use the permission (I) ignore."
+                        Description = 'All folders need to be accessible by the end user. Please define at least (R)ead or (W)rite permissions on the deepest folder or use the permission (I) ignore.'
                         Name        = 'Matrix design flaw'
                         Value       = 'Vegetables'
                     }
@@ -2495,7 +2495,7 @@ Describe 'Test-MatrixPermissionsHC' {
                     )
                     Expected    = @{
                         Type        = 'Warning'
-                        Description = "All folders need to be accessible by the end user. Please define at least (R)ead or (W)rite permissions on the deepest folder or use the permission (I) ignore."
+                        Description = 'All folders need to be accessible by the end user. Please define at least (R)ead or (W)rite permissions on the deepest folder or use the permission (I) ignore.'
                         Name        = 'Matrix design flaw'
                         Value       = 'Vegetables'
                     }
@@ -2522,7 +2522,7 @@ Describe 'Test-MatrixPermissionsHC' {
                     )
                     Expected    = @{
                         Type        = 'Warning'
-                        Description = "All folders need to be accessible by the end user. Please define at least (R)ead or (W)rite permissions on the deepest folder or use the permission (I) ignore."
+                        Description = 'All folders need to be accessible by the end user. Please define at least (R)ead or (W)rite permissions on the deepest folder or use the permission (I) ignore.'
                         Name        = 'Matrix design flaw'
                         Value       = @('Vegetables', 'Fruit\Appel', 'Fruit\Banana\Yellow',
                             'Sports', 'Color\Green', 'Animal\Dog')
@@ -2530,7 +2530,7 @@ Describe 'Test-MatrixPermissionsHC' {
                 }
             )
             It '<TestName>' -TestCases $TestCases {
-                Param (
+                param (
                     $Permissions,
                     $expected
                 )
@@ -2577,6 +2577,24 @@ Describe 'Test-MatrixPermissionsHC' {
                     Description = 'At least 2 columns are required: 1 for the folder names and 1 where the permissions are defined.'
                     Name        = 'Missing columns'
                     Value       = '1 column'
+                }
+            }
+
+            $TestName = 'SamAccountName is missing in the header row'
+            @{
+                TestName    = $TestName
+                Permissions = @(
+                    [PSCustomObject]@{P1 = $null      ; P2 = $null }
+                    [PSCustomObject]@{P1 = 'SiteCode' ; P2 = $null }
+                    [PSCustomObject]@{P1 = 'GroupName'; P2 = $null }
+                    [PSCustomObject]@{P1 = 'Path'     ; P2 = 'L' }
+                    [PSCustomObject]@{P1 = 'folder'   ; P2 = 'W' }
+                )
+                Expected    = @{
+                    Type        = 'FatalError'
+                    Description = 'Missing SamAccountName in the header row'
+                    Name        = 'SamAccountName name missing'
+                    Value       = 'Column number 2'
                 }
             }
 
@@ -2640,7 +2658,7 @@ Describe 'Test-MatrixPermissionsHC' {
             }
         )
         It '<TestName>' -TestCases $TestCases {
-            Param (
+            param (
                 $Permissions,
                 $expected
             )
@@ -2667,17 +2685,17 @@ Describe 'Test-MatrixPermissionsHC' {
             }
         )
         It '<TestName>' -TestCases $TestCases {
-            Param (
+            param (
                 $Permissions,
                 $expected
             )
 
             $actual = Test-MatrixPermissionsHC -Permissions $Permissions
 
-            $actual | Should  -BeNullOrEmpty
+            $actual | Should -BeNullOrEmpty
         }
     }
-}
+} -Tag test
 Describe 'Test-AdObjectsHC' {
     Context 'a FatalError object is created when' {
         $TestCases = @(
@@ -2885,7 +2903,7 @@ Describe 'Test-MatrixSettingHC' {
         )
 
         It '<TestName>' -TestCases $TestCases {
-            Param (
+            param (
                 $Setting,
                 $expected
             )
@@ -2911,7 +2929,7 @@ Describe 'Get-JobErrorHC' {
                 AsJob        = $true
             }
 
-            $job = Invoke-Command  @testInvokeParams
+            $job = Invoke-Command @testInvokeParams
             Wait-Job -Job $job
 
             Get-JobErrorHC -Job $job | Should -BeNullOrEmpty
@@ -2925,7 +2943,7 @@ Describe 'Get-JobErrorHC' {
                 AsJob        = $true
             }
 
-            $job = Invoke-Command  @testInvokeParams
+            $job = Invoke-Command @testInvokeParams
             Wait-Job -Job $job
 
             $actual = Get-JobErrorHC -Job $job
@@ -2940,7 +2958,7 @@ Describe 'Get-JobErrorHC' {
                 AsJob        = $true
             }
 
-            $job = Invoke-Command  @testInvokeParams
+            $job = Invoke-Command @testInvokeParams
             Wait-Job -Job $job
 
             $actual = Get-JobErrorHC -Job $job
@@ -2955,7 +2973,7 @@ Describe 'Get-JobErrorHC' {
                 AsJob        = $true
             }
 
-            $job = Invoke-Command  @testInvokeParams
+            $job = Invoke-Command @testInvokeParams
             Wait-Job -Job $job
 
             $actual = Get-JobErrorHC -Job $job
