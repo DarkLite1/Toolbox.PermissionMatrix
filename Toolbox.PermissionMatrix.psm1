@@ -111,13 +111,13 @@ function ConvertTo-MatrixADNamesHC {
     .PARAMETER Middle
         The value of the middle part of the newly generated string. Usually
         this is something like 'North'.
- #>
-
-    [CmdLetBinding()]
-    [OutputType([HashTable])]
+    #>
+    
+    [CmdletBinding()]
+    [OutputType([hashtable])]
     param (
         [Parameter(Mandatory)]
-        [ValidateCount(3, 1000)]
+        [ValidateCount(3, [int]::MaxValue)]
         [PSCustomObject[]]$ColumnHeaders,
         [String]$Begin,
         [String]$Middle,
@@ -127,60 +127,63 @@ function ConvertTo-MatrixADNamesHC {
 
     process {
         try {
-            Write-Verbose 'Convert to matrix AD object names'
+            Write-Verbose 'Converting to matrix AD object names'
 
-            $firstProperty = @($ColumnHeaders[0].PSObject.Properties.Name)[0]
+            $Properties = $ColumnHeaders[0].PSObject.Properties.Name
+            $FirstProperty = $Properties[0]
+            $Result = @{}
 
-            $result = @{}
+            foreach ($Prop in $Properties) {
+                # Skip the first column (usually the folder path/row headers)
+                if ($Prop -eq $FirstProperty) { continue }
 
-            $ColumnHeaders[0].PSObject.Properties.Name.Where( {
-                    $_ -ne $firstProperty
-                }).Foreach( {
-                    Write-Verbose "Property '$_'"
+                Write-Verbose "Processing Property: '$Prop'"
 
-                    #region Get original values
-                    $names = @($ColumnHeaders.$_)[0..2]
-                    $original = [ordered]@{
-                        Begin  = $names[2]
-                        Middle = $names[1]
-                        End    = $names[0]
+                #region Get original values
+                $EndVal = $ColumnHeaders[0].$Prop
+                $MiddleVal = $ColumnHeaders[1].$Prop
+                $BeginVal = $ColumnHeaders[2].$Prop
+
+                $Original = [ordered]@{
+                    Begin  = $BeginVal
+                    Middle = $MiddleVal
+                    End    = $EndVal
+                }
+                Write-Verbose "Original value begin '$BeginVal' middle '$MiddleVal' end '$EndVal'"
+                #endregion
+
+                #region Convert placeholder to proper values
+                $ConvBegin = if ($BeginVal -eq $BeginReplace -and $Begin) { $Begin } else { $BeginVal }
+                $ConvMiddle = if ($MiddleVal -eq $MiddleReplace -and $Middle) { $Middle } else { $MiddleVal }
+                $ConvEnd = $EndVal
+
+                $Converted = [ordered]@{
+                    Begin  = $ConvBegin
+                    Middle = $ConvMiddle
+                    End    = $ConvEnd
+                }
+                Write-Verbose "Converted value begin '$ConvBegin' middle '$ConvMiddle' end '$ConvEnd'"
+                #endregion
+
+                #region Create SamAccountName
+                # Filter out nulls/spaces and join
+                $SamAccountName = (
+                    $ConvBegin, $ConvMiddle, $ConvEnd | Where-Object { 
+                        -not [string]::IsNullOrWhiteSpace($_) 
                     }
-                    Write-Verbose "Original value begin '$($original.Begin)' middle '$($original.Middle)' end $($original.End)"
-                    #endregion
+                ) -join ' '
+                
+                Write-Verbose "SamAccountName '$SamAccountName'"
+                #endregion
 
-                    #region Convert placeholder to proper values
-                    $converted = [ordered]@{
-                        Begin  = $names[2]
-                        Middle = $names[1]
-                        End    = $names[0]
-                    }
+                $Result.$Prop = @{
+                    SamAccountName = $SamAccountName
+                    Original       = $Original
+                    Converted      = $Converted
+                }
+            }
 
-                    if (($original.Begin -eq $BeginReplace) -and ($Begin)) {
-                        $converted.Begin = $Begin
-                    }
-                    if (($original.Middle -eq $MiddleReplace) -and ($Middle)) {
-                        $converted.Middle = $Middle
-                    }
-                    Write-Verbose "Converted value begin '$($converted.Begin)' middle '$($converted.Middle)' end $($converted.End)"
-                    #endregion
-
-                    #region Create SamAccountName
-                    $SamAccountName = @(
-                        $converted.Begin ,
-                        $converted.Middle ,
-                        $converted.End
-                    ).Where( { $_ }) -join ' '
-                    Write-Verbose "SamAccountName '$SamAccountName'"
-                    #endregion
-
-                    $result.$_ = @{
-                        SamAccountName = $SamAccountName
-                        Original       = $original
-                        Converted      = $converted
-                    }
-                })
-
-            $result
+            return $Result
         }
         catch {
             throw "Failed generating the correct AD object name for begin '$Begin' and middle '$Middle': $_"
@@ -1056,11 +1059,11 @@ function Test-MatrixPermissionsHC {
                 [string]::IsNullOrWhiteSpace($Permissions[2].$col)) {
                 
                 $ValidationErrors.Add([PSCustomObject]@{
-                    Type        = 'FatalError'
-                    Name        = 'SamAccountName missing'
-                    Description = 'Missing SamAccountName in the header row'
-                    Value       = "Column number $($col.TrimStart('P'))"
-                })
+                        Type        = 'FatalError'
+                        Name        = 'SamAccountName missing'
+                        Description = 'Missing SamAccountName in the header row'
+                        Value       = "Column number $($col.TrimStart('P'))"
+                    })
             }
         }
         #endregion
@@ -1084,11 +1087,11 @@ function Test-MatrixPermissionsHC {
 
         if ($InvalidChars.Count -gt 0) {
             $ValidationErrors.Add([PSCustomObject]@{
-                Type        = 'FatalError'
-                Name        = 'Permission character unknown'
-                Description = "Supported characters are 'F', 'W', 'R', 'L', 'I', 'C', or blank."
-                Value       = ($InvalidChars | Select-Object -Unique) -join ', '
-            })
+                    Type        = 'FatalError'
+                    Name        = 'Permission character unknown'
+                    Description = "Supported characters are 'F', 'W', 'R', 'L', 'I', 'C', or blank."
+                    Value       = ($InvalidChars | Select-Object -Unique) -join ', '
+                })
         }
         #endregion
 
@@ -1096,23 +1099,23 @@ function Test-MatrixPermissionsHC {
         $MissingFolders = $FolderNames.Where({ [string]::IsNullOrWhiteSpace($_.$FirstProperty) })
         if ($MissingFolders.Count -gt 0) {
             $ValidationErrors.Add([PSCustomObject]@{
-                Type        = 'FatalError'
-                Name        = 'Folder name missing'
-                Description = 'Missing folder name in the first column.'
-                Value       = "$($MissingFolders.Count) missing folder name(s)"
-            })
+                    Type        = 'FatalError'
+                    Name        = 'Folder name missing'
+                    Description = 'Missing folder name in the first column.'
+                    Value       = "$($MissingFolders.Count) missing folder name(s)"
+                })
         }
         #endregion
 
         #region Duplicate folder name
-        $NotUniqueFolder = $FolderNames.$FirstProperty | Group-Object | Where-Object Count -ge 2
+        $NotUniqueFolder = $FolderNames.$FirstProperty | Group-Object | Where-Object Count -GE 2
         if ($NotUniqueFolder) {
             $ValidationErrors.Add([PSCustomObject]@{
-                Type        = 'FatalError'
-                Name        = 'Duplicate folder name'
-                Description = 'Every folder name in the first column needs to be unique.'
-                Value       = ($NotUniqueFolder.Name) -join ', '
-            })
+                    Type        = 'FatalError'
+                    Name        = 'Duplicate folder name'
+                    Description = 'Every folder name in the first column needs to be unique.'
+                    Value       = ($NotUniqueFolder.Name) -join ', '
+                })
         }
         #endregion
 
@@ -1129,18 +1132,18 @@ function Test-MatrixPermissionsHC {
 
         # Parent folder permissions (Row index 3)
         $ParentFolderPermissions = $Permissions[3].PSObject.Properties.Where({ 
-            $_.Name -ne $FirstProperty -and -not [string]::IsNullOrWhiteSpace($_.Value) 
-        }).Value
+                $_.Name -ne $FirstProperty -and -not [string]::IsNullOrWhiteSpace($_.Value) 
+            }).Value
 
         $ParentFolderHasPermission = [bool]($ParentFolderPermissions.Where({ $_ -ne 'L' }))
         $inAccessibleFolders = [System.Collections.Generic.List[string]]::new()
 
         foreach ($Row in $FolderRows.Where({ $_.$FirstProperty -in $DeepestFolders })) {
             $Perms = $Row.PSObject.Properties.Where({
-                $_.Name -ne $FirstProperty -and 
-                -not [string]::IsNullOrWhiteSpace($_.Value) -and 
-                $_.Value -ne 'L'
-            }).Value
+                    $_.Name -ne $FirstProperty -and 
+                    -not [string]::IsNullOrWhiteSpace($_.Value) -and 
+                    $_.Value -ne 'L'
+                }).Value
 
             if ((-not $Perms) -and (-not $ParentFolderHasPermission)) {
                 $inAccessibleFolders.Add($Row.$FirstProperty)
@@ -1149,11 +1152,11 @@ function Test-MatrixPermissionsHC {
 
         if ($inAccessibleFolders.Count -gt 0) {
             $ValidationErrors.Add([PSCustomObject]@{
-                Type        = 'Warning'
-                Name        = 'Matrix design flaw'
-                Description = 'All folders need to be accessible by the end user. Please define at least (R)ead or (W)rite on the deepest folder.'
-                Value       = $inAccessibleFolders -join ', '
-            })
+                    Type        = 'Warning'
+                    Name        = 'Matrix design flaw'
+                    Description = 'All folders need to be accessible by the end user. Please define at least (R)ead or (W)rite on the deepest folder.'
+                    Value       = $inAccessibleFolders -join ', '
+                })
         }
         #endregion
 
