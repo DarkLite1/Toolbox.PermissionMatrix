@@ -1144,7 +1144,7 @@ Describe 'Format-SettingStringsHC' {
             }
         }
     }
-} -Tag test
+}
 Describe 'Get-DefaultAclHC' {
     Context 'an error is thrown' {
         $TestCases = @(
@@ -1178,7 +1178,7 @@ Describe 'Get-DefaultAclHC' {
                     [PSCustomObject]@{MailTo = 'Mike@mail.com'; ADObjectName = 'Bob'    ; Permission = 'Z' }
                     [PSCustomObject]@{MailTo = 'Chuck@mail.com' }
                 )
-                Expected     = "Permission character 'Z' unknown."
+                Expected     = "Permission character 'Z' is unknown"
             }
 
             $TaskName = "duplicate 'ADObjectName'"
@@ -1235,14 +1235,14 @@ Describe 'Get-DefaultAclHC' {
             @{
                 TaskName     = $TaskName
                 DefaultsFile = @(
-                    [PSCustomObject]@{MailTo = 'Bob@mail.com'  ; ADObjectName = 'Manager'; Permission = 'C' }
+                    [PSCustomObject]@{MailTo = 'Bob@mail.com'  ; ADObjectName = 'Manager'; Permission = 'M' }
                     [PSCustomObject]@{MailTo = 'Mike@mail.com' ; ADObjectName = 'User1'  ; Permission = 'R' }
                     [PSCustomObject]@{MailTo = 'Chuck@mail.com'; ADObjectName = 'User2'  ; Permission = 'F' }
                     [PSCustomObject]@{ADObjectName = 'User3'   ; Permission = 'L' }
                     [PSCustomObject]@{ADObjectName = 'User4'   ; Permission = 'W' }
                 )
                 Expected     = @{
-                    'Manager' = 'C'
+                    'Manager' = 'M'
                     'User1'   = 'R'
                     'User2'   = 'F'
                     'User3'   = 'L'
@@ -1262,7 +1262,7 @@ Describe 'Get-DefaultAclHC' {
             Should -BeExactly ($expected | ConvertTo-Json)
         }
     }
-}
+} -Tag test
 Describe 'Get-ExecutableMatrixHC' {
     Context 'exclude the matrix when' {
         It 'the File.Check contains a FatalError' {

@@ -407,11 +407,11 @@ function Get-DefaultAclHC {
 
     .PARAMETER Sheet
         The Excel worksheet containing the permission parameters.
-#>
-
+    #>
     [CmdletBinding()]
-    [OutputType([HashTable])]
+    [OutputType([hashtable])]
     param (
+        [Parameter(Mandatory)]
         [PSCustomObject[]]$Sheet
     )
 
@@ -419,31 +419,37 @@ function Get-DefaultAclHC {
         try {
             $ACL = @{}
 
-            $Sheet.Where( { $_.ADObjectName -or $_.Permission }).ForEach( {
-                    $ADObjectName = $_.ADObjectName
-                    $Permission = $_.Permission
+            foreach ($Row in $Sheet) {
+                $ADObjectName = $Row.ADObjectName
+                $Permission = $Row.Permission
 
-                    if (-not $Permission) {
-                        throw "AD object name '$ADObjectName' has no permission."
-                    }
+                $HasName = -not [string]::IsNullOrWhiteSpace($ADObjectName)
+                $HasPerm = -not [string]::IsNullOrWhiteSpace($Permission)
 
-                    if ($Permission -notmatch '^(L|R|W|C|F)$') {
-                        throw "Permission character '$Permission' unknown."
-                    }
+                if ((-not $HasName ) -and (-not $HasPerm)) {
+                    continue
+                }
 
-                    if (-not $ADObjectName) {
-                        throw "Permission '$Permission' has no AD object name."
-                    }
+                if (-not $HasPerm) {
+                    throw "AD object name '$ADObjectName' has no permission."
+                }
 
-                    try {
-                        $ACL.Add($ADObjectName, $Permission)
-                    }
-                    catch {
-                        throw "AD Object name '$ADObjectName' is not unique."
-                    }
-                })
+                if (-not $HasName) {
+                    throw "Permission '$Permission' has no AD object name."
+                }
 
-            $ACL
+                if ($Permission -notmatch '^(L|R|W|M|F)$') {
+                    throw "Permission character '$Permission' is unknown."
+                }
+
+                if ($ACL.ContainsKey($ADObjectName)) {
+                    throw "AD Object name '$ADObjectName' is not unique."
+                }
+
+                $ACL.Add($ADObjectName, $Permission)
+            }
+
+            return $ACL
         }
         catch {
             throw "Failed retrieving the ACL from the default settings file: $_"
