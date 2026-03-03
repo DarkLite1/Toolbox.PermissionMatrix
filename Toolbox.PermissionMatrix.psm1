@@ -604,54 +604,53 @@ function Get-AdUserPrincipalNameHC {
 }
 function Test-AclEqualHC {
     <#
-	.SYNOPSIS
-		Compare two ACL's. Will return True if the Access Rules match and will return
+    .SYNOPSIS
+        Compare two ACLs. Will return True if the Access Rules match and will return
         false if the Access rules do not match.
 
-	.DESCRIPTION
-		Checks if two ACL's are matching by finding identical ACE's in the Source and
-        Destination ACL's. Returns False if all Destination ACE's match
-        the Source ACE's, even if there is not the same amount of ACE's in each.
-	#>
+    .DESCRIPTION
+        Checks if two ACLs are matching by finding identical ACEs in the Source and
+        Destination ACLs. Returns False if all Destination ACEs match
+        the Source ACEs, even if there is not the same amount of ACEs in each.
+    #>
 
+    [CmdletBinding()]
     param (
         [Parameter(Mandatory)]
         [System.Security.AccessControl.FileSystemSecurity]$DestinationAcl,
+        
         [Parameter(Mandatory)]
         [System.Security.AccessControl.FileSystemSecurity]$SourceAcl
     )
 
-    try {
-        $DestinationRules = $DestinationAcl.GetAccessRules($true, $true, [System.Security.Principal.NTAccount])
-        $SourceRules = $SourceAcl.GetAccessRules($true, $true, [System.Security.Principal.NTAccount])
+    process {
+        try {
+            $DestinationRules = $DestinationAcl.GetAccessRules($true, $true, [System.Security.Principal.NTAccount])
+            $SourceRules = $SourceAcl.GetAccessRules($true, $true, [System.Security.Principal.NTAccount])
 
-        $Matches = @()
-
-        foreach ($D in $DestinationRules) {
-            $Match = @($SourceRules).Where( {
-                    ($D.FileSystemRights -eq $_.FileSystemRights) -and
-                    ($D.AccessControlType -eq $_.AccessControlType) -and
-                    ($D.IdentityReference -eq $_.IdentityReference) -and
-                    ($D.InheritanceFlags -eq $_.InheritanceFlags) -and
-                    ($D.PropagationFlags -eq $_.PropagationFlags)
-                })
-
-            if ($Match) {
-                $Matches += $Match
-            }
-            else {
+            if ($DestinationRules.Count -ne $SourceRules.Count) {
                 return $False
             }
-        }
 
-        if ($Matches.Count -ne $SourceRules.Count) {
-            return $False
-        }
+            foreach ($D in $DestinationRules) {
+                $Match = @($SourceRules).Where({
+                        ($D.FileSystemRights -eq $_.FileSystemRights) -and
+                        ($D.AccessControlType -eq $_.AccessControlType) -and
+                        ($D.IdentityReference.Value -eq $_.IdentityReference.Value) -and
+                        ($D.InheritanceFlags -eq $_.InheritanceFlags) -and
+                        ($D.PropagationFlags -eq $_.PropagationFlags)
+                    })
 
-        return $True
-    }
-    catch {
-        throw "Failed testing the ACL for equality: $_"
+                if (-not $Match) {
+                    return $False
+                }
+            }
+
+            return $True
+        }
+        catch {
+            throw "Failed testing the ACL for equality: $_"
+        }
     }
 }
 function Test-AclIsInheritedOnlyHC {

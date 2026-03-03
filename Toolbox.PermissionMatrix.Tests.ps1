@@ -1432,7 +1432,7 @@ Describe 'Get-ExecutableMatrixHC' {
             (@($actual).Where( { $_.Matrix -eq 'Ignore' }) | Measure-Object).Count | Should -BeExactly 0
         }
     }
-} -Tag test
+}
 Describe 'Test-AclEqualHC' {
     BeforeAll {
         $A = New-Object System.Security.AccessControl.FileSystemAccessRule(
@@ -1648,7 +1648,7 @@ Describe 'Test-AclEqualHC' {
             }
         }
     }
-}
+} -Tag test
 Describe 'Test-AclIsInheritedOnlyHC' {
     BeforeAll {
         $BuiltinAdmin = New-Object System.Security.AccessControl.FileSystemAccessRule(
