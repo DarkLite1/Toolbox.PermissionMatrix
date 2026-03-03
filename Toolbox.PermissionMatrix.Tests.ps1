@@ -269,7 +269,7 @@ Describe 'Test-FormDataHC' {
             }
         }
     }
-}  -Tag test
+}
 Describe 'ConvertTo-AceHC' {
     It 'L for List' {
         $expected = New-Object System.Security.AccessControl.FileSystemAccessRule(
@@ -1720,7 +1720,7 @@ Describe 'Test-AclIsInheritedOnlyHC' {
             Test-AclIsInheritedOnlyHC -Acl $testAcl | Should -BeFalse
         }
     }
-}
+} -Tag test
 Describe 'Test-ExpandedMatrixHC' {
     Context 'a terminating error is thrown when' {
         It 'a matrix contains an object that is unknown in ADObject' {

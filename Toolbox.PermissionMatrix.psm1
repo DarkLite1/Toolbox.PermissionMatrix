@@ -629,35 +629,43 @@ function Test-AclEqualHC {
 }
 function Test-AclIsInheritedOnlyHC {
     <#
-	.SYNOPSIS
-		Test if an ACL only contains inherited ACE's.
+    .SYNOPSIS
+        Test if an ACL only contains inherited ACEs.
 
-	.DESCRIPTION
-		Test if an ACL only contains inherited ACE's and no other manually added ACE's.
+    .DESCRIPTION
+        Test if an ACL only contains inherited ACEs and no other manually added ACEs.
         Returns true when the ACL is inherited and false when it contains extra added
-        ACE's or the ACL is not set to inherit ACE's.
-	#>
-
+        ACEs or the ACL is not set to inherit ACEs.
+    #>
+    
+    [CmdletBinding()]
+    [OutputType([bool])]
     param (
-        [Parameter(Mandatory)]
+        [Parameter(Mandatory, ValueFromPipeline)]
         [System.Security.AccessControl.FileSystemSecurity]$Acl
     )
 
-    try {
-        if ($Acl.AreAccessRulesProtected) {
-            return $false
-        }
+    process {
+        try {
+            if ($Acl.AreAccessRulesProtected) {
+                return $false
+            }
 
-        if ($Acl.GetAccessRules($true, $false, [System.Security.Principal.NTAccount]).Where( {
-                    ($_.IdentityReference -ne 'BUILTIN\Administrators') -and
-                    ($_.IdentityReference -ne 'NT AUTHORITY\SYSTEM') }).Count -ne 0) {
-            return $false
-        }
+            $ExplicitRules = $Acl.GetAccessRules($true, $false, [System.Security.Principal.NTAccount])
 
-        return $true
-    }
-    catch {
-        throw "Failed testing the ACL for inherited ACE's only: $_"
+            $AllowedExplicitAccounts = @('BUILTIN\Administrators', 'NT AUTHORITY\SYSTEM')
+            
+            foreach ($Rule in $ExplicitRules) {
+                if ($Rule.IdentityReference.Value -notin $AllowedExplicitAccounts) {
+                    return $false
+                }
+            }
+
+            return $true
+        }
+        catch {
+            throw "Failed testing the ACL for inherited ACEs only: $_"
+        }
     }
 }
 function Test-AdObjectsHC {
