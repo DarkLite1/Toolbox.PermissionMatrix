@@ -1,5 +1,5 @@
 #Requires -Modules Pester
-#Requires -Version 5.1
+#Requires -Version 7
 
 BeforeDiscovery {
     # used by inModuleScope
@@ -162,7 +162,7 @@ Describe 'Get-AdUserPrincipalNameHC' {
             $actual.notFound | Should -Be 'bob@mail.com'
         }
     }
-} -ForEach @{ moduleName = $moduleName } -Tag test
+} -ForEach @{ moduleName = $moduleName }
 Describe 'Test-FormDataHC' {
     Context 'should create a FatalError object when' {
         It 'there is more than one object' {
@@ -1635,7 +1635,7 @@ Describe 'Test-AclEqualHC' {
             }
         }
     }
-} -Tag 'Test-AclEqualHC'
+}
 Describe 'Test-AclIsInheritedOnlyHC' {
     BeforeAll {
         $BuiltinAdmin = New-Object System.Security.AccessControl.FileSystemAccessRule(
@@ -1670,20 +1670,20 @@ Describe 'Test-AclIsInheritedOnlyHC' {
     Context 'is returning true when' {
         It "there are only inherited ACE's in the ACL" {
             $testFileItem = New-Item -Path 'TestDrive:/testFolder' -ItemType Directory -Force
-            $testAcl = $testFileItem.GetAccessControl()
+            $testAcl = Get-Acl $testFileItem 
 
             Test-AclIsInheritedOnlyHC -Acl $testAcl | Should -BeTrue
         }
         It "there are only inherited ACE's and the group 'BUILTIN\Administrators' in the ACL" {
             $testFileItem = New-Item -Path 'TestDrive:/testFolder' -ItemType Directory -Force
-            $testAcl = $testFileItem.GetAccessControl()
+            $testAcl = Get-Acl $testFileItem 
             $testAcl.AddAccessRule($BuiltinAdmin)
 
             Test-AclIsInheritedOnlyHC -Acl $testAcl | Should -BeTrue
         }
         It "there are only inherited ACE's and the group 'NT AUTHORITY\SYSTEM' in the ACL" {
             $testFileItem = New-Item -Path 'TestDrive:/testFolder' -ItemType Directory -Force
-            $testAcl = $testFileItem.GetAccessControl()
+            $testAcl = Get-Acl $testFileItem 
             $testAcl.AddAccessRule($SystemNtAuthority)
 
             Test-AclIsInheritedOnlyHC -Acl $testAcl | Should -BeTrue
@@ -1692,7 +1692,7 @@ Describe 'Test-AclIsInheritedOnlyHC' {
     Context 'is returning false when' {
         It "there is a non inherited ACE amongst the inherited ACE's" {
             $testFileItem = New-Item -Path 'TestDrive:/testFolder' -ItemType Directory -Force
-            $testAcl = $testFileItem.GetAccessControl()
+            $testAcl = Get-Acl $testFileItem 
             $testAcl.AddAccessRule($A)
 
             Test-AclIsInheritedOnlyHC -Acl $testAcl | Should -BeFalse
@@ -1704,7 +1704,6 @@ Describe 'Test-AclIsInheritedOnlyHC' {
             Test-AclIsInheritedOnlyHC -Acl $testAcl | Should -BeFalse
         }
     }
-
 }
 Describe 'Test-ExpandedMatrixHC' {
     Context 'a terminating error is thrown when' {
@@ -2295,7 +2294,7 @@ Describe 'Test-ExpandedMatrixHC' {
                     DefaultAcl = @{'group1' = 'R' }
                 }
 
-                $expected.Value = @('group1')
+                $expected.Value = 'group1'
 
                 $actual = Test-ExpandedMatrixHC @testParams |
                 Where-Object Name -EQ $expected.Name
@@ -2329,7 +2328,7 @@ Describe 'Test-ExpandedMatrixHC' {
                     DefaultAcl = @{'group1' = 'R' ; 'lswagger' = 'R' }
                 }
 
-                $expected.Value = @('lswagger', 'group1')
+                $expected.Value = @( 'group1', 'lswagger')
 
                 $actual = Test-ExpandedMatrixHC @testParams |
                 Where-Object Name -EQ $expected.Name
@@ -2457,7 +2456,7 @@ Describe 'Test-MatrixPermissionsHC' {
                     )
                     Expected    = @{
                         Type        = 'Warning'
-                        Description = 'All folders need to be accessible by the end user. Please define at least (R)ead or (W)rite permissions on the deepest folder or use the permission (I) ignore.'
+                        Description = 'All folders need to be accessible by the end user. Please define at least (R)ead or (W)rite on the deepest folder.'
                         Name        = 'Matrix design flaw'
                         Value       = 'Vegetables'
                     }
@@ -2476,7 +2475,7 @@ Describe 'Test-MatrixPermissionsHC' {
                     )
                     Expected    = @{
                         Type        = 'Warning'
-                        Description = 'All folders need to be accessible by the end user. Please define at least (R)ead or (W)rite permissions on the deepest folder or use the permission (I) ignore.'
+                        Description = 'All folders need to be accessible by the end user. Please define at least (R)ead or (W)rite on the deepest folder.'
                         Name        = 'Matrix design flaw'
                         Value       = 'Vegetables'
                     }
@@ -2495,7 +2494,7 @@ Describe 'Test-MatrixPermissionsHC' {
                     )
                     Expected    = @{
                         Type        = 'Warning'
-                        Description = 'All folders need to be accessible by the end user. Please define at least (R)ead or (W)rite permissions on the deepest folder or use the permission (I) ignore.'
+                        Description = 'All folders need to be accessible by the end user. Please define at least (R)ead or (W)rite on the deepest folder.'
                         Name        = 'Matrix design flaw'
                         Value       = 'Vegetables'
                     }
@@ -2522,10 +2521,9 @@ Describe 'Test-MatrixPermissionsHC' {
                     )
                     Expected    = @{
                         Type        = 'Warning'
-                        Description = 'All folders need to be accessible by the end user. Please define at least (R)ead or (W)rite permissions on the deepest folder or use the permission (I) ignore.'
+                        Description = 'All folders need to be accessible by the end user. Please define at least (R)ead or (W)rite on the deepest folder.'
                         Name        = 'Matrix design flaw'
-                        Value       = @('Vegetables', 'Fruit\Appel', 'Fruit\Banana\Yellow',
-                            'Sports', 'Color\Green', 'Animal\Dog')
+                        Value       = 'Vegetables, Fruit\Appel, Fruit\Banana\Yellow, Sports, Color\Green, Animal\Dog'
                     }
                 }
             )
@@ -2580,7 +2578,7 @@ Describe 'Test-MatrixPermissionsHC' {
                 }
             }
 
-            $TestName = 'SamAccountName is missing in the header row'
+           $TestName = 'SamAccountName is missing in the header row'
             @{
                 TestName    = $TestName
                 Permissions = @(
@@ -2593,12 +2591,12 @@ Describe 'Test-MatrixPermissionsHC' {
                 Expected    = @{
                     Type        = 'FatalError'
                     Description = 'Missing SamAccountName in the header row'
-                    Name        = 'SamAccountName name missing'
+                    Name        = 'SamAccountName missing'
                     Value       = 'Column number 2'
                 }
-            }
+            }     
 
-            $TestName = "incorrect permission character (not 'l', 'c', 'w', 'r', 'i' or ' ') is found"
+            $TestName = 'permission character unknown'
             @{
                 TestName    = $TestName
                 Permissions = @(
@@ -2612,13 +2610,13 @@ Describe 'Test-MatrixPermissionsHC' {
                 )
                 Expected    = @{
                     Type        = 'FatalError'
-                    Description = "The only supported characters, to define permissions on a folder, are 'F' (FullControl), 'W' (Write/Modify), 'R' (Read), 'L' (List) or ' ' (blank)."
+                    Description = "Supported characters are 'F', 'W', 'R', 'L', 'I', 'C', or blank."
                     Name        = 'Permission character unknown'
-                    Value       = @('*', 'X')
+                    Value       = '*, X'
                 }
             }
 
-            $TestName = 'a folder name is missing in the first column'
+            $TestName = 'missing folder name in the first column'
             @{
                 TestName    = $TestName
                 Permissions = @(
@@ -2631,9 +2629,9 @@ Describe 'Test-MatrixPermissionsHC' {
                 )
                 Expected    = @{
                     Type        = 'FatalError'
-                    Description = 'Missing folder name in the first column. A folder name is required to be able to set permissions on it.'
+                    Description = 'Missing folder name in the first column.'
                     Name        = 'Folder name missing'
-                    Value       = $null
+                    Value       = '1 missing folder name(s)'
                 }
             }
 
@@ -2651,8 +2649,8 @@ Describe 'Test-MatrixPermissionsHC' {
                 )
                 Expected    = @{
                     Type        = 'FatalError'
-                    Description = 'Every folder name in the first column needs to be unique. This is required to be able to set the correct permissions.'
-                    Name        = 'Folder name not unique'
+                    Description = 'Every folder name in the first column needs to be unique.'
+                    Name        = 'Duplicate folder name'
                     Value       = 'F1'
                 }
             }
@@ -2663,7 +2661,8 @@ Describe 'Test-MatrixPermissionsHC' {
                 $expected
             )
 
-            $actual = Test-MatrixPermissionsHC -Permissions $Permissions | Where-Object Name -EQ $expected.Name
+            $actual = Test-MatrixPermissionsHC -Permissions $Permissions | 
+            Where-Object Name -EQ $expected.Name
 
             $actual.Type | Should -Be $expected.Type
             $actual.Description | Should -Be $expected.Description
@@ -2695,7 +2694,7 @@ Describe 'Test-MatrixPermissionsHC' {
             $actual | Should -BeNullOrEmpty
         }
     }
-} -Tag test
+}
 Describe 'Test-AdObjectsHC' {
     Context 'a FatalError object is created when' {
         $TestCases = @(
@@ -2712,7 +2711,7 @@ Describe 'Test-AdObjectsHC' {
                     Type        = 'FatalError'
                     Description = "All objects defined in the matrix need to be unique. Duplicate AD Objects can also be generated from the 'Settings' worksheet combined with the header rows in the 'Permissions' worksheet."
                     Name        = 'AD Object not unique'
-                    Value       = @('mike', 'bob')
+                    Value       = @('bob', 'mike')
                 }
             }
 
