@@ -9,82 +9,78 @@ function ConvertTo-AceHC {
         Convert an AD Object name and a permission character to a valid Access Control List Entry.
 
     .PARAMETER Type
-        The permission character defining the access to the folder.
+        The permission character defining the access to the folder. Valid values: L, R, W, F, M.
 
     .PARAMETER Name
         Name of the AD object, used to identify the user or group within AD.
-#>
-
+    #>
+    [CmdletBinding()]
     param (
         [Parameter(Mandatory)]
         [ValidateSet('L', 'R', 'W', 'F', 'M')]
         [String]$Type,
+
         [Parameter(Mandatory)]
         [String]$Name
     )
 
+    $Identity = if ($Name -match '\\') { $Name } else { "$env:USERDOMAIN\$Name" }
+
     switch ($Type) {
         'L' {
-            New-Object System.Security.AccessControl.FileSystemAccessRule(
-                "$env:USERDOMAIN\$Name",
+            return [System.Security.AccessControl.FileSystemAccessRule]::new(
+                $Identity,
                 [System.Security.AccessControl.FileSystemRights]::ReadAndExecute,
                 [System.Security.AccessControl.InheritanceFlags]::ContainerInherit,
                 [System.Security.AccessControl.PropagationFlags]::None,
                 [System.Security.AccessControl.AccessControlType]::Allow
             )
-            break
         }
         'W' {
             # This folder only
-            New-Object System.Security.AccessControl.FileSystemAccessRule(
-                "$env:USERDOMAIN\$Name",
+            [System.Security.AccessControl.FileSystemAccessRule]::new(
+                $Identity,
                 [System.Security.AccessControl.FileSystemRights]'CreateFiles, AppendData, DeleteSubdirectoriesAndFiles, ReadAndExecute, Synchronize',
                 [System.Security.AccessControl.InheritanceFlags]::None,
                 [System.Security.AccessControl.PropagationFlags]::InheritOnly,
                 [System.Security.AccessControl.AccessControlType]::Allow
             )
             # Subfolders and files only
-            New-Object System.Security.AccessControl.FileSystemAccessRule(
-                "$env:USERDOMAIN\$Name",
+            [System.Security.AccessControl.FileSystemAccessRule]::new(
+                $Identity,
                 [System.Security.AccessControl.FileSystemRights]'DeleteSubdirectoriesAndFiles, Modify, Synchronize',
                 [System.Security.AccessControl.InheritanceFlags]'ContainerInherit, ObjectInherit',
                 [System.Security.AccessControl.PropagationFlags]::InheritOnly,
                 [System.Security.AccessControl.AccessControlType]::Allow
             )
-            break
+            return
         }
         'R' {
-            New-Object System.Security.AccessControl.FileSystemAccessRule(
-                "$env:USERDOMAIN\$Name",
+            return [System.Security.AccessControl.FileSystemAccessRule]::new(
+                $Identity,
                 [System.Security.AccessControl.FileSystemRights]::ReadAndExecute,
                 [System.Security.AccessControl.InheritanceFlags]'ContainerInherit, ObjectInherit',
                 [System.Security.AccessControl.PropagationFlags]::None,
                 [System.Security.AccessControl.AccessControlType]::Allow
             )
-            break
         }
         'F' {
-            New-Object System.Security.AccessControl.FileSystemAccessRule(
-                "$env:USERDOMAIN\$Name",
+            return [System.Security.AccessControl.FileSystemAccessRule]::new(
+                $Identity,
                 [System.Security.AccessControl.FileSystemRights]::FullControl,
                 [System.Security.AccessControl.InheritanceFlags]'ContainerInherit, ObjectInherit',
                 [System.Security.AccessControl.PropagationFlags]::None,
                 [System.Security.AccessControl.AccessControlType]::Allow
             )
-            break
         }
         'M' {
-            New-Object System.Security.AccessControl.FileSystemAccessRule(
-                "$env:USERDOMAIN\$Name",
+            return [System.Security.AccessControl.FileSystemAccessRule]::new(
+                $Identity,
                 [System.Security.AccessControl.FileSystemRights]::Modify,
                 [System.Security.AccessControl.InheritanceFlags]'ContainerInherit, ObjectInherit',
                 [System.Security.AccessControl.PropagationFlags]::None,
                 [System.Security.AccessControl.AccessControlType]::Allow
             )
-            break
-        }
-        default {
-            throw "Permission character '$_' not supported."
         }
     }
 }

@@ -349,7 +349,7 @@ Describe 'ConvertTo-AceHC' {
         $actual | ConvertTo-Json |
         Should -BeExactly ($expected | ConvertTo-Json)
     }
-}
+} -Tag test
 Describe 'ConvertTo-MatrixADNamesHC' {
     Context 'compose names' {
         $Permissions = @(
