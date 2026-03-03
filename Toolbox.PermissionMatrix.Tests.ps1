@@ -2416,7 +2416,7 @@ Describe 'Test-ExpandedMatrixHC' {
             }
         }
     }
-}  -Tag test
+}
 Describe 'Test-MatrixPermissionsHC' {
     Context 'Deepest folder has only List permissions or none at all' {
         Context 'no Warning object is created when' {
@@ -2766,7 +2766,7 @@ Describe 'Test-AdObjectsHC' {
         $actual = Test-AdObjectsHC -ADObjects $ADObjects
         $actual | Should -BeNullOrEmpty
     }
-}
+} -Tag test
 Describe 'Test-MatrixSettingHC' {
     Context 'a FatalError object is created when' {
         $TestCases = @(
