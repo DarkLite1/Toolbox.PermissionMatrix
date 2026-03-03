@@ -469,24 +469,35 @@ function Get-ExecutableMatrixHC {
     .PARAMETER From
         One object for each file, containing the File, Settings and Permissions
         properties.
-#>
+    #>
 
     [CmdletBinding()]
     [OutputType([PSCustomObject[]])]
     param (
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $false, ValueFromPipeline)]
         [PSCustomObject[]]$From
     )
 
-    try {
-        @((@($From).Where( {
-                        ($_.File.Check.Type -notcontains 'FatalError') -and
-                        ($_.Permissions.Check.Type -notcontains 'FatalError') })).Settings).Where( {
-                ($_.Check.Type -notcontains 'FatalError') -and ($_.Matrix)
-            })
-    }
-    catch {
-        throw "Failed retrieving the executable matrix: $_"
+    process {
+        try {
+            if (-not $From) { return }
+
+            foreach ($Item in $From) {
+                if (($Item.File.Check.Type -contains 'FatalError') -or 
+                    ($Item.Permissions.Check.Type -contains 'FatalError')) {
+                    continue
+                }
+
+                foreach ($Setting in $Item.Settings) {
+                    if (($Setting.Check.Type -notcontains 'FatalError') -and $Setting.Matrix) {
+                        $Setting
+                    }
+                }
+            }
+        }
+        catch {
+            throw "Failed retrieving the executable matrix: $_"
+        }
     }
 }
 function Get-JobErrorHC {
