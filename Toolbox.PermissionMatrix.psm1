@@ -730,10 +730,9 @@ function Test-FormDataHC {
 
     .PARAMETER FormData
         Represents the data coming from the Excel sheet 'FormData'.
-#>
-
+    #>
     [CmdletBinding()]
-    [OutputType([PSCustomObject[]])]
+    [OutputType([PSCustomObject])]
     param (
         [Parameter(Mandatory)]
         [PSCustomObject[]]$FormData
@@ -741,66 +740,59 @@ function Test-FormDataHC {
 
     process {
         try {
-            if ($FormData.Count -ge 2) {
+            if ($FormData.Count -ne 1) {
                 return [PSCustomObject]@{
                     Type        = 'FatalError'
-                    Name        = 'Only one row allowed'
-                    Description = "Found $($FormData.Count) rows of data were only one row is allowed."
-                    Value       = $MissingProperty
+                    Name        = 'Incorrect row count'
+                    Description = "Exactly one row of data is required. Found $($FormData.Count) row(s)."
+                    Value       = $FormData.Count
                 }
             }
 
-            $Properties = ($FormData | Get-Member -MemberType NoteProperty).Name
+            $Row = $FormData[0]
+            $Properties = ($Row | Get-Member -MemberType NoteProperty).Name
 
-            #region Test mandatory property MatrixFormStatus
-            if ($Properties -notcontains 'MatrixFormStatus') {
-                return [PSCustomObject]@{
-                    Type        = 'FatalError'
-                    Name        = 'Missing column header'
-                    Description = 'The column header MatrixFormStatus is mandatory.'
-                    Value       = 'MatrixFormStatus'
-                }
-            }
-            #endregion
-
-            #region Mandatory property
-            $mandatoryProperties = @(
+            $MandatoryProperties = @(
                 'MatrixFormStatus',
-                'MatrixCategoryName' ,
-                'MatrixSubCategoryName' ,
+                'MatrixCategoryName',
+                'MatrixSubCategoryName',
                 'MatrixResponsible',
-                'MatrixFolderDisplayName' ,
+                'MatrixFolderDisplayName',
                 'MatrixFolderPath'
             )
 
-            if ($MissingProperty = $mandatoryProperties.Where( {
-                        $Properties -notcontains $_ })) {
+            #region Missing column headers
+            $MissingProperties = $MandatoryProperties.Where({ $_ -notin $Properties })
+            
+            if ($MissingProperties) {
                 return [PSCustomObject]@{
                     Type        = 'FatalError'
                     Name        = 'Missing column header'
-                    Description = "The column headers $mandatoryProperties are mandatory."
-                    Value       = $MissingProperty
+                    Description = "The following column headers are mandatory: $($MandatoryProperties -join ', ')."
+                    Value       = $MissingProperties -join ', '
                 }
             }
             #endregion
 
-            if ($FormData.MatrixFormStatus -eq 'Enabled') {
-                $mandatoryPropertyValues = $mandatoryProperties.Where( {
-                        $_ -ne 'MatrixFormStatus' })
+            #region Mandatory property values (Only if Enabled)
+            if ($Row.MatrixFormStatus -eq 'Enabled') {
+                
+                $MandatoryPropertyValues = $MandatoryProperties.Where({ $_ -ne 'MatrixFormStatus' })
 
-                #region Mandatory property value
-                if ($BlankProperty = $mandatoryPropertyValues.Where( {
-                            (-not ($FormData.$_)) -and
-                            ($Properties -contains $_) })) {
+                $BlankProperties = $MandatoryPropertyValues.Where({
+                        [string]::IsNullOrWhiteSpace($Row.$_)
+                    })
+
+                if ($BlankProperties) {
                     return [PSCustomObject]@{
                         Type        = 'FatalError'
                         Name        = 'Missing value'
-                        Description = "Values for $mandatoryPropertyValues are mandatory."
-                        Value       = $BlankProperty
+                        Description = "Values for the following columns are mandatory when status is Enabled: $($MandatoryPropertyValues -join ', ')."
+                        Value       = $BlankProperties -join ', '
                     }
                 }
-                #endregion
             }
+            #endregion
         }
         catch {
             throw "Failed testing the Excel sheet 'FormData': $_"

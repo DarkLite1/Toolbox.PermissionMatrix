@@ -181,7 +181,7 @@ Describe 'Test-FormDataHC' {
             $actual = Test-FormDataHC -FormData $testData
 
             $actual.Type | Should -Be 'FatalError'
-            $actual.Name | Should -Be 'Only one row allowed'
+            $actual.Name | Should -Be 'Incorrect row count'
         }
         Context 'a property is missing' {
             It '<Name>' -TestCases @(
@@ -269,7 +269,7 @@ Describe 'Test-FormDataHC' {
             }
         }
     }
-}
+}  -Tag test
 Describe 'ConvertTo-AceHC' {
     It 'L for List' {
         $expected = New-Object System.Security.AccessControl.FileSystemAccessRule(
@@ -2931,4 +2931,4 @@ Describe 'Test-MatrixSettingHC' {
             $actual.Value | Should -Be $expected.Value
         }
     }
-} -Tag test
+}
